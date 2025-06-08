@@ -3,6 +3,9 @@ import { useState } from 'react';
 import CallTechnician from './CallTechnician';
 import WorkshopList from './WorkshopList';
 import BookService from './BookService';
+import WorkshopDetail from './WorkshopDetail';
+import PricingEstimation from './PricingEstimation';
+import BookingStatus from './BookingStatus';
 
 interface ServiceFlowProps {
   onBack: () => void;
@@ -15,6 +18,7 @@ interface ServiceBookingData {
   services: string[];
   problems: string[];
   description: string;
+  bookingType?: 'location' | 'workshop';
 }
 
 interface Workshop {
@@ -34,8 +38,10 @@ interface Workshop {
   services: string[];
 }
 
+type FlowStep = 'service-details' | 'workshop-list' | 'workshop-detail' | 'pricing' | 'booking-status' | 'payment' | 'rating';
+
 const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
-  const [currentStep, setCurrentStep] = useState<'service-details' | 'workshop-list' | 'workshop-detail' | 'pricing' | 'booking'>('service-details');
+  const [currentStep, setCurrentStep] = useState<FlowStep>('service-details');
   const [serviceData, setServiceData] = useState<ServiceBookingData | null>(null);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
 
@@ -46,11 +52,25 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
 
   const handleWorkshopSelect = (workshop: Workshop) => {
     setSelectedWorkshop(workshop);
+    setCurrentStep('workshop-detail');
+  };
+
+  const handleWorkshopDetailNext = () => {
     if (serviceType === 'call') {
       setCurrentStep('pricing');
     } else {
-      setCurrentStep('booking');
+      // For book service, we would go to scheduling step
+      // For now, let's go to pricing as well
+      setCurrentStep('pricing');
     }
+  };
+
+  const handlePricingNext = () => {
+    setCurrentStep('booking-status');
+  };
+
+  const handlePaymentNext = () => {
+    setCurrentStep('payment');
   };
 
   const handleBackToService = () => {
@@ -61,6 +81,18 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   const handleBackToWorkshops = () => {
     setCurrentStep('workshop-list');
     setSelectedWorkshop(null);
+  };
+
+  const handleBackToWorkshopDetail = () => {
+    setCurrentStep('workshop-detail');
+  };
+
+  const handleBackToPricing = () => {
+    setCurrentStep('pricing');
+  };
+
+  const handleBackToBookingStatus = () => {
+    setCurrentStep('booking-status');
   };
 
   if (currentStep === 'service-details') {
@@ -90,7 +122,39 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     );
   }
 
-  // For now, just show a placeholder for other steps
+  if (currentStep === 'workshop-detail' && selectedWorkshop) {
+    return (
+      <WorkshopDetail
+        workshop={selectedWorkshop}
+        onBack={handleBackToWorkshops}
+        onNext={handleWorkshopDetailNext}
+        serviceType={serviceType}
+      />
+    );
+  }
+
+  if (currentStep === 'pricing' && serviceData && selectedWorkshop) {
+    return (
+      <PricingEstimation
+        serviceData={serviceData}
+        workshopName={selectedWorkshop.name}
+        onBack={handleBackToWorkshopDetail}
+        onNext={handlePricingNext}
+      />
+    );
+  }
+
+  if (currentStep === 'booking-status') {
+    return (
+      <BookingStatus
+        onBack={handleBackToPricing}
+        onPayment={handlePaymentNext}
+        serviceType={serviceType}
+      />
+    );
+  }
+
+  // For other steps, show placeholder for now
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center space-y-4">
@@ -99,10 +163,10 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
           Workshop: {selectedWorkshop?.name || 'None'}
         </p>
         <button 
-          onClick={handleBackToWorkshops}
+          onClick={() => setCurrentStep('service-details')}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
         >
-          Back to Workshops
+          Back to Start
         </button>
       </div>
     </div>

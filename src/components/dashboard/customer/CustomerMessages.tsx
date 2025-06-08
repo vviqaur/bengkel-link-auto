@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { MessageCircle, Send, Phone, Clock } from 'lucide-react';
+import { MessageCircle, Send, Phone, Clock, PhoneCall } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 const CustomerMessages = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [isCalling, setIsCalling] = useState(false);
   
   const [conversations] = useState([
     {
@@ -22,6 +22,7 @@ const CustomerMessages = () => {
       timestamp: new Date('2024-01-15T14:30:00'),
       unreadCount: 2,
       isOnline: true,
+      phone: '+62 812-3456-7890',
       messages: [
         {
           id: '1',
@@ -63,6 +64,7 @@ const CustomerMessages = () => {
       timestamp: new Date('2024-01-14T16:20:00'),
       unreadCount: 0,
       isOnline: false,
+      phone: '+62 21-1234-5678',
       messages: [
         {
           id: '1',
@@ -130,7 +132,55 @@ const CustomerMessages = () => {
     }
   };
 
+  const handleCall = (phoneNumber: string) => {
+    setIsCalling(true);
+    console.log('Calling:', phoneNumber);
+    
+    // Simulate call duration
+    setTimeout(() => {
+      setIsCalling(false);
+    }, 5000);
+
+    // In a real app, you would integrate with a calling service
+    // For now, we'll just open the phone dialer
+    window.open(`tel:${phoneNumber}`, '_self');
+  };
+
   const selectedConversation = conversations.find(c => c.id === selectedChat);
+
+  if (isCalling && selectedConversation) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-140px)] bg-gradient-to-b from-primary/20 to-primary/5">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-6">
+            <Avatar className="w-32 h-32 mx-auto">
+              <AvatarImage src={selectedConversation.avatar} />
+              <AvatarFallback className="text-2xl">
+                {selectedConversation.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h2 className="text-2xl font-bold">{selectedConversation.name}</h2>
+              <p className="text-muted-foreground">{selectedConversation.phone}</p>
+              <p className="text-sm text-primary mt-2">Menghubungi...</p>
+            </div>
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto animate-pulse">
+              <PhoneCall className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <Button 
+            variant="destructive" 
+            className="w-full"
+            onClick={() => setIsCalling(false)}
+          >
+            Tutup Panggilan
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (selectedChat && selectedConversation) {
     return (
@@ -158,7 +208,11 @@ const CustomerMessages = () => {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="icon">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => handleCall(selectedConversation.phone)}
+          >
             <Phone className="w-4 h-4" />
           </Button>
         </div>

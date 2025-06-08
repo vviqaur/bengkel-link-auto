@@ -6,6 +6,9 @@ import BookService from './BookService';
 import WorkshopDetail from './WorkshopDetail';
 import PricingEstimation from './PricingEstimation';
 import BookingStatus from './BookingStatus';
+import Payment from './Payment';
+import Rating from './Rating';
+import Scheduling from './Scheduling';
 
 interface ServiceFlowProps {
   onBack: () => void;
@@ -38,12 +41,20 @@ interface Workshop {
   services: string[];
 }
 
-type FlowStep = 'service-details' | 'workshop-list' | 'workshop-detail' | 'pricing' | 'booking-status' | 'payment' | 'rating';
+interface ScheduleData {
+  date: string;
+  time: string;
+  technician: string;
+}
+
+type FlowStep = 'service-details' | 'workshop-list' | 'workshop-detail' | 'scheduling' | 'pricing' | 'booking-status' | 'payment' | 'rating';
 
 const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   const [currentStep, setCurrentStep] = useState<FlowStep>('service-details');
   const [serviceData, setServiceData] = useState<ServiceBookingData | null>(null);
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
+  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const handleServiceNext = (data: ServiceBookingData) => {
     setServiceData(data);
@@ -59,13 +70,18 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     if (serviceType === 'call') {
       setCurrentStep('pricing');
     } else {
-      // For book service, we would go to scheduling step
-      // For now, let's go to pricing as well
-      setCurrentStep('pricing');
+      // For book service, go to scheduling first
+      setCurrentStep('scheduling');
     }
   };
 
-  const handlePricingNext = () => {
+  const handleScheduleNext = (data: ScheduleData) => {
+    setScheduleData(data);
+    setCurrentStep('pricing');
+  };
+
+  const handlePricingNext = (amount: number) => {
+    setTotalAmount(amount);
     setCurrentStep('booking-status');
   };
 
@@ -73,6 +89,16 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     setCurrentStep('payment');
   };
 
+  const handlePaymentComplete = () => {
+    setCurrentStep('rating');
+  };
+
+  const handleRatingComplete = () => {
+    // Go back to main dashboard or show completion
+    onBack();
+  };
+
+  // Navigation helpers
   const handleBackToService = () => {
     setCurrentStep('service-details');
     setServiceData(null);
@@ -85,6 +111,13 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
 
   const handleBackToWorkshopDetail = () => {
     setCurrentStep('workshop-detail');
+    if (serviceType === 'book') {
+      setScheduleData(null);
+    }
+  };
+
+  const handleBackToScheduling = () => {
+    setCurrentStep('scheduling');
   };
 
   const handleBackToPricing = () => {
@@ -93,6 +126,10 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
 
   const handleBackToBookingStatus = () => {
     setCurrentStep('booking-status');
+  };
+
+  const handleBackToPayment = () => {
+    setCurrentStep('payment');
   };
 
   if (currentStep === 'service-details') {
@@ -133,13 +170,23 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     );
   }
 
+  if (currentStep === 'scheduling' && selectedWorkshop) {
+    return (
+      <Scheduling
+        workshopName={selectedWorkshop.name}
+        onBack={handleBackToWorkshopDetail}
+        onNext={handleScheduleNext}
+      />
+    );
+  }
+
   if (currentStep === 'pricing' && serviceData && selectedWorkshop) {
     return (
       <PricingEstimation
         serviceData={serviceData}
         workshopName={selectedWorkshop.name}
-        onBack={handleBackToWorkshopDetail}
-        onNext={handlePricingNext}
+        onBack={serviceType === 'book' ? handleBackToScheduling : handleBackToWorkshopDetail}
+        onNext={() => handlePricingNext(750000)} // Mock total amount
       />
     );
   }
@@ -154,7 +201,31 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     );
   }
 
-  // For other steps, show placeholder for now
+  if (currentStep === 'payment') {
+    return (
+      <Payment
+        onBack={handleBackToBookingStatus}
+        onNext={handlePaymentComplete}
+        totalAmount={totalAmount}
+        serviceData={serviceData}
+      />
+    );
+  }
+
+  if (currentStep === 'rating' && selectedWorkshop) {
+    const technicianName = scheduleData?.technician || selectedWorkshop.technicians[0]?.name || 'Ahmad Supardi';
+    
+    return (
+      <Rating
+        onBack={handleBackToPayment}
+        onComplete={handleRatingComplete}
+        technicianName={technicianName}
+        workshopName={selectedWorkshop.name}
+      />
+    );
+  }
+
+  // Fallback
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center space-y-4">

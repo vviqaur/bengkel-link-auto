@@ -1,36 +1,44 @@
 
 import { useState } from 'react';
-import { Bell, User, Switch } from 'lucide-react';
+import { Bell, User, MapPin, Clock, ToggleLeft, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Switch as SwitchComponent } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const TechnicianDashboard = () => {
-  const [isActive, setIsActive] = useState(false);
-  const [tasks] = useState([
+  const [isAvailable, setIsAvailable] = useState(true);
+  const [bookings] = useState([
     {
       id: '1',
-      customerName: 'Ahmad Subandi',
-      location: 'Jl. Gading Serpong Raya No. 15',
-      vehicleType: 'Honda Civic 2020',
+      customerName: 'John Doe',
       service: 'Ganti Oli + Filter',
-      problem: 'Oli sudah 10,000 km',
-      date: '2024-06-08',
-      time: '14:00',
+      vehicleType: 'Honda Civic 2020',
+      location: 'Jl. Sudirman No. 123',
+      time: '10:00',
       status: 'pending' as const,
+      price: 'Rp 250.000',
     },
     {
       id: '2',
-      customerName: 'Siti Marlina',
-      location: 'Ruko Frankfurt Blok C No. 8',
-      vehicleType: 'Toyota Avanza 2019',
+      customerName: 'Jane Smith',
       service: 'Service AC',
-      problem: 'AC tidak dingin',
-      date: '2024-06-08',
-      time: '16:30',
+      vehicleType: 'Toyota Avanza 2019',
+      location: 'Jl. Thamrin No. 45',
+      time: '14:00',
       status: 'on_way' as const,
+      price: 'Rp 350.000',
+    },
+    {
+      id: '3',
+      customerName: 'Ahmad Rahman',
+      service: 'Tune Up',
+      vehicleType: 'Suzuki Ertiga 2021',
+      location: 'Jl. Gatot Subroto No. 78',
+      time: '16:00',
+      status: 'completed' as const,
+      price: 'Rp 450.000',
     }
   ]);
 
@@ -56,16 +64,45 @@ const TechnicianDashboard = () => {
     }
   };
 
+  const pendingBookings = bookings.filter(b => b.status === 'pending');
+  const activeBookings = bookings.filter(b => b.status === 'on_way' || b.status === 'in_progress');
+  const completedBookings = bookings.filter(b => b.status === 'completed');
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold">Dashboard Teknisi</h1>
+            <img 
+              src="/lovable-uploads/18c3e59c-93d8-4fb1-b29d-ad8245a52f1b.png" 
+              alt="BengkeLink" 
+              className="w-8 h-8"
+            />
+            <div>
+              <h1 className="text-lg font-bold">Teknisi BengkeLink</h1>
+              <p className="text-sm text-muted-foreground">
+                {user?.workshopName || 'Workshop Name'}
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Availability Toggle */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm">
+                {isAvailable ? 'Tersedia' : 'Tidak Tersedia'}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsAvailable(!isAvailable)}
+                className={`${isAvailable ? 'text-green-600' : 'text-gray-400'}`}
+              >
+                <ToggleLeft className="w-6 h-6" />
+              </Button>
+            </div>
+
             <Bell className="w-5 h-5 text-muted-foreground" />
             <Button
               variant="ghost"
@@ -89,114 +126,223 @@ const TechnicianDashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="p-4 space-y-6">
-        {/* Status Toggle */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Status Kerja
-              <div className="flex items-center gap-2">
-                <span className={`text-sm ${isActive ? 'text-green-600' : 'text-gray-500'}`}>
-                  {isActive ? 'Aktif' : 'Tidak Aktif'}
-                </span>
-                <SwitchComponent 
-                  checked={isActive}
-                  onCheckedChange={setIsActive}
-                />
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              {isActive 
-                ? 'Anda siap menerima tugas baru' 
-                : 'Aktifkan untuk mulai menerima tugas'}
-            </p>
-          </CardContent>
-        </Card>
+      <main className="p-4">
+        <Tabs defaultValue="today" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="today">Hari Ini</TabsTrigger>
+            <TabsTrigger value="pending">Pending ({pendingBookings.length})</TabsTrigger>
+            <TabsTrigger value="active">Aktif ({activeBookings.length})</TabsTrigger>
+            <TabsTrigger value="history">Riwayat</TabsTrigger>
+          </TabsList>
 
-        {/* Active Tasks */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Tugas Aktif</h2>
-          
-          {tasks.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <p className="text-muted-foreground">Belum ada tugas aktif</p>
-              </CardContent>
-            </Card>
-          ) : (
-            tasks.map(task => (
-              <Card key={task.id} className="card-interactive">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{task.customerName}</CardTitle>
-                    <Badge className={getStatusColor(task.status)}>
-                      {getStatusText(task.status)}
-                    </Badge>
-                  </div>
+          <TabsContent value="today" className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Booking Hari Ini</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium">Lokasi:</p>
-                      <p className="text-muted-foreground">{task.location}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Kendaraan:</p>
-                      <p className="text-muted-foreground">{task.vehicleType}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Layanan:</p>
-                      <p className="text-muted-foreground">{task.service}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Waktu:</p>
-                      <p className="text-muted-foreground">{task.date} - {task.time}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <p className="font-medium text-sm">Masalah:</p>
-                    <p className="text-muted-foreground text-sm">{task.problem}</p>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button size="sm" className="btn-primary">
-                      Buka Maps
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Chat Customer
-                    </Button>
-                    {task.status === 'pending' && (
-                      <Button size="sm" variant="outline">
-                        Mulai Tugas
-                      </Button>
-                    )}
-                    {task.status === 'in_progress' && (
-                      <Button size="sm" className="btn-primary">
-                        Selesai
-                      </Button>
-                    )}
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{bookings.length}</div>
+                  <p className="text-xs text-muted-foreground">Total booking</p>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
 
-        {/* Task History */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Riwayat Tugas</h2>
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">Belum ada riwayat tugas</p>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Pendapatan Hari Ini</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">Rp 1.05M</div>
+                  <p className="text-xs text-muted-foreground">dari {completedBookings.length} layanan</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Rating</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold flex items-center">
+                    4.8 <Star className="w-4 h-4 text-yellow-500 ml-1" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">dari 156 review</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Today's Schedule */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Jadwal Hari Ini</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {bookings.map(booking => (
+                    <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="space-y-1">
+                        <p className="font-medium">{booking.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{booking.service}</p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {booking.time}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {booking.location}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right space-y-2">
+                        <Badge className={getStatusColor(booking.status)}>
+                          {getStatusText(booking.status)}
+                        </Badge>
+                        <p className="text-sm font-medium">{booking.price}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="pending" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Booking Menunggu</h2>
+              <Badge variant="secondary">{pendingBookings.length} booking</Badge>
+            </div>
+
+            <div className="space-y-4">
+              {pendingBookings.map(booking => (
+                <Card key={booking.id} className="card-interactive">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{booking.customerName}</CardTitle>
+                      <Badge className={getStatusColor(booking.status)}>
+                        {getStatusText(booking.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium">Layanan:</p>
+                        <p className="text-muted-foreground">{booking.service}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Kendaraan:</p>
+                        <p className="text-muted-foreground">{booking.vehicleType}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Waktu:</p>
+                        <p className="text-muted-foreground">{booking.time}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Harga:</p>
+                        <p className="text-muted-foreground">{booking.price}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="font-medium text-sm">Lokasi:</p>
+                      <p className="text-sm text-muted-foreground">{booking.location}</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button size="sm" className="btn-primary">Terima</Button>
+                      <Button size="sm" variant="outline">Tolak</Button>
+                      <Button size="sm" variant="outline">Reschedule</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="active" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Booking Aktif</h2>
+              <Badge variant="secondary">{activeBookings.length} booking</Badge>
+            </div>
+
+            <div className="space-y-4">
+              {activeBookings.map(booking => (
+                <Card key={booking.id} className="card-interactive">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{booking.customerName}</CardTitle>
+                      <Badge className={getStatusColor(booking.status)}>
+                        {getStatusText(booking.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium">Layanan:</p>
+                        <p className="text-muted-foreground">{booking.service}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Kendaraan:</p>
+                        <p className="text-muted-foreground">{booking.vehicleType}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="font-medium text-sm">Lokasi:</p>
+                      <p className="text-sm text-muted-foreground">{booking.location}</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {booking.status === 'on_way' && (
+                        <Button size="sm" className="btn-primary">Mulai Pengerjaan</Button>
+                      )}
+                      {booking.status === 'in_progress' && (
+                        <Button size="sm" className="btn-primary">Selesaikan</Button>
+                      )}
+                      <Button size="sm" variant="outline">Hubungi Customer</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-6">
+            <h2 className="text-2xl font-bold">Riwayat Layanan</h2>
+            
+            <div className="space-y-4">
+              {completedBookings.map(booking => (
+                <Card key={booking.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{booking.customerName}</CardTitle>
+                      <Badge className={getStatusColor(booking.status)}>
+                        {getStatusText(booking.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium">Layanan:</p>
+                        <p className="text-muted-foreground">{booking.service}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Pendapatan:</p>
+                        <p className="text-muted-foreground">{booking.price}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Logout Button */}
-        <Card>
+        <Card className="mt-8">
           <CardContent className="pt-6">
             <Button 
               variant="destructive" 

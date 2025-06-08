@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Bell, User, MapPin, Clock, ToggleLeft, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+type BookingStatus = 'pending' | 'on_way' | 'in_progress' | 'completed';
+
+interface Booking {
+  id: string;
+  customerName: string;
+  service: string;
+  vehicleType: string;
+  location: string;
+  time: string;
+  status: BookingStatus;
+  price: string;
+}
+
 const TechnicianDashboard = () => {
   const [isAvailable, setIsAvailable] = useState(true);
-  const [bookings] = useState([
+  const [bookings] = useState<Booking[]>([
     {
       id: '1',
       customerName: 'John Doe',
@@ -17,7 +29,7 @@ const TechnicianDashboard = () => {
       vehicleType: 'Honda Civic 2020',
       location: 'Jl. Sudirman No. 123',
       time: '10:00',
-      status: 'pending' as const,
+      status: 'pending',
       price: 'Rp 250.000',
     },
     {
@@ -27,7 +39,7 @@ const TechnicianDashboard = () => {
       vehicleType: 'Toyota Avanza 2019',
       location: 'Jl. Thamrin No. 45',
       time: '14:00',
-      status: 'on_way' as const,
+      status: 'on_way',
       price: 'Rp 350.000',
     },
     {
@@ -37,14 +49,14 @@ const TechnicianDashboard = () => {
       vehicleType: 'Suzuki Ertiga 2021',
       location: 'Jl. Gatot Subroto No. 78',
       time: '16:00',
-      status: 'completed' as const,
+      status: 'completed',
       price: 'Rp 450.000',
     }
   ]);
 
   const { user, logout } = useAuth();
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: BookingStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'on_way': return 'bg-blue-100 text-blue-800';
@@ -54,7 +66,7 @@ const TechnicianDashboard = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: BookingStatus) => {
     switch (status) {
       case 'pending': return 'Menunggu';
       case 'on_way': return 'Dalam Perjalanan';

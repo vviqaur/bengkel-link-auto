@@ -68,6 +68,9 @@ const TechnicianDashboard = () => {
   const activeBookings = bookings.filter(b => b.status === 'on_way' || b.status === 'in_progress');
   const completedBookings = bookings.filter(b => b.status === 'completed');
 
+  // Mock workshop name for technician
+  const workshopName = 'Bengkel Jaya Abadi';
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -82,7 +85,7 @@ const TechnicianDashboard = () => {
             <div>
               <h1 className="text-lg font-bold">Teknisi BengkeLink</h1>
               <p className="text-sm text-muted-foreground">
-                {user?.workshopName || 'Workshop Name'}
+                {workshopName}
               </p>
             </div>
           </div>
@@ -297,9 +300,6 @@ const TechnicianDashboard = () => {
                     <div className="flex gap-2">
                       {booking.status === 'on_way' && (
                         <Button size="sm" className="btn-primary">Mulai Pengerjaan</Button>
-                      )}
-                      {booking.status === 'in_progress' && (
-                        <Button size="sm" className="btn-primary">Selesaikan</Button>
                       )}
                       <Button size="sm" variant="outline">Hubungi Customer</Button>
                     </div>

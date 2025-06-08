@@ -27,6 +27,7 @@ export interface TechnicianUser extends User {
   dateOfBirth: Date;
   rating: number;
   completedServices: number;
+  isActive: boolean;
 }
 
 export interface WorkshopUser extends User {

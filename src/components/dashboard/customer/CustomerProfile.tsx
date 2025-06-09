@@ -6,9 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
+import ProfileEdit from './ProfileEdit';
+import VehicleManagement from './VehicleManagement';
 
 const CustomerProfile = () => {
   const { user, logout } = useAuth();
+  const [currentView, setCurrentView] = useState<'profile' | 'edit' | 'vehicles' | 'settings'>('profile');
+  
   const [vehicles] = useState([
     {
       id: '1',
@@ -41,6 +45,98 @@ const CustomerProfile = () => {
     logout();
   };
 
+  const handleProfileSave = (data: any) => {
+    // Here you would typically save to backend
+    console.log('Saving profile data:', data);
+    setCurrentView('profile');
+  };
+
+  if (currentView === 'edit') {
+    return (
+      <ProfileEdit
+        onBack={() => setCurrentView('profile')}
+        onSave={handleProfileSave}
+      />
+    );
+  }
+
+  if (currentView === 'vehicles') {
+    return (
+      <VehicleManagement
+        onBack={() => setCurrentView('profile')}
+      />
+    );
+  }
+
+  if (currentView === 'settings') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="p-4">
+          <div className="flex items-center gap-3 mb-6">
+            <Button variant="ghost" size="icon" onClick={() => setCurrentView('profile')}>
+              <Edit className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-bold">Pengaturan Akun</h1>
+          </div>
+
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4">Pengaturan Umum</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span>Notifikasi Push</span>
+                    <Button variant="outline" size="sm">Atur</Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Bahasa</span>
+                    <Button variant="outline" size="sm">Indonesia</Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Tema</span>
+                    <Button variant="outline" size="sm">Terang</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4">Keamanan</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span>Ubah Password</span>
+                    <Button variant="outline" size="sm">Ubah</Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Verifikasi 2 Langkah</span>
+                    <Button variant="outline" size="sm">Aktifkan</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4">Privasi</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span>Data Lokasi</span>
+                    <Button variant="outline" size="sm">Kelola</Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Riwayat Aktivitas</span>
+                    <Button variant="outline" size="sm">Hapus</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 space-y-6">
       {/* Profile Header */}
@@ -65,7 +161,7 @@ const CustomerProfile = () => {
                 </Badge>
               </div>
             </div>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => setCurrentView('edit')}>
               <Edit className="w-4 h-4" />
             </Button>
           </div>
@@ -107,7 +203,7 @@ const CustomerProfile = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Kendaraan Saya</CardTitle>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setCurrentView('vehicles')}>
               <Car className="w-4 h-4 mr-2" />
               Tambah Kendaraan
             </Button>
@@ -156,7 +252,11 @@ const CustomerProfile = () => {
 
       {/* Settings & Actions */}
       <div className="space-y-3">
-        <Button variant="outline" className="w-full justify-start">
+        <Button 
+          variant="outline" 
+          className="w-full justify-start"
+          onClick={() => setCurrentView('settings')}
+        >
           <Settings className="w-4 h-4 mr-3" />
           Pengaturan Akun
         </Button>

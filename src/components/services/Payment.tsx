@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import PaymentPassword from './PaymentPassword';
 
 interface PaymentProps {
   onBack: () => void;
@@ -20,6 +21,7 @@ const Payment = ({ onBack, onNext, totalAmount, serviceData }: PaymentProps) => 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const paymentMethods = [
     {
@@ -27,51 +29,64 @@ const Payment = ({ onBack, onNext, totalAmount, serviceData }: PaymentProps) => 
       name: 'Bayar Tunai',
       description: 'Bayar langsung ke teknisi',
       icon: Banknote,
-      available: true
+      available: true,
+      needsPassword: false
     },
     {
       id: 'qris' as PaymentMethod,
       name: 'QRIS',
       description: 'Scan QR untuk bayar',
       icon: Smartphone,
-      available: true
+      available: true,
+      needsPassword: false
     },
     {
       id: 'ovo' as PaymentMethod,
       name: 'OVO',
       description: 'Bayar dengan OVO',
       icon: Wallet,
-      available: true
+      available: true,
+      needsPassword: true
     },
     {
       id: 'gopay' as PaymentMethod,
       name: 'GoPay',
       description: 'Bayar dengan GoPay',
       icon: Wallet,
-      available: true
+      available: true,
+      needsPassword: true
     },
     {
       id: 'dana' as PaymentMethod,
       name: 'DANA',
       description: 'Bayar dengan DANA',
       icon: Wallet,
-      available: true
+      available: true,
+      needsPassword: true
     },
     {
       id: 'credit_card' as PaymentMethod,
       name: 'Kartu Kredit',
       description: 'Visa, Mastercard, dll',
       icon: CreditCard,
-      available: false
+      available: false,
+      needsPassword: false
     }
   ];
 
+  const selectedMethodData = paymentMethods.find(m => m.id === selectedMethod);
+
   const handlePayment = async () => {
-    if (!selectedMethod) return;
+    if (!selectedMethod || !selectedMethodData) return;
+
+    if (selectedMethodData.needsPassword) {
+      setShowPasswordForm(true);
+      return;
+    }
 
     setIsProcessing(true);
 
-    // Simulate payment processing
+    // Simulate payment processing for cash and QRIS
     setTimeout(() => {
       setIsProcessing(false);
       setPaymentSuccess(true);
@@ -82,6 +97,33 @@ const Payment = ({ onBack, onNext, totalAmount, serviceData }: PaymentProps) => 
       }, 2000);
     }, 3000);
   };
+
+  const handlePasswordSuccess = () => {
+    setShowPasswordForm(false);
+    setIsProcessing(true);
+
+    // Simulate payment processing after password verification
+    setTimeout(() => {
+      setIsProcessing(false);
+      setPaymentSuccess(true);
+      
+      // Auto navigate after success
+      setTimeout(() => {
+        onNext();
+      }, 2000);
+    }, 2000);
+  };
+
+  if (showPasswordForm && selectedMethodData) {
+    return (
+      <PaymentPassword
+        onBack={() => setShowPasswordForm(false)}
+        onSuccess={handlePasswordSuccess}
+        paymentMethod={selectedMethodData.name}
+        amount={totalAmount}
+      />
+    );
+  }
 
   if (paymentSuccess) {
     return (
@@ -106,12 +148,14 @@ const Payment = ({ onBack, onNext, totalAmount, serviceData }: PaymentProps) => 
               </div>
               <div className="space-y-2">
                 <Badge variant="secondary" className="text-sm">
-                  {paymentMethods.find(m => m.id === selectedMethod)?.name}
+                  {selectedMethodData?.name}
                 </Badge>
                 <p className="text-xs text-muted-foreground">
                   ID Transaksi: TXN{Date.now()}
                 </p>
               </div>
+              {/* Simple animation */}
+              <div className="w-16 h-1 bg-primary rounded-full mx-auto animate-pulse"></div>
             </CardContent>
           </Card>
         </main>
@@ -242,7 +286,7 @@ const Payment = ({ onBack, onNext, totalAmount, serviceData }: PaymentProps) => 
         {(selectedMethod === 'ovo' || selectedMethod === 'gopay' || selectedMethod === 'dana') && (
           <Card>
             <CardHeader>
-              <CardTitle>Nomor {paymentMethods.find(m => m.id === selectedMethod)?.name}</CardTitle>
+              <CardTitle>Nomor {selectedMethodData?.name}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -255,7 +299,7 @@ const Payment = ({ onBack, onNext, totalAmount, serviceData }: PaymentProps) => 
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Pastikan nomor telepon terdaftar di {paymentMethods.find(m => m.id === selectedMethod)?.name}
+                Pastikan nomor telepon terdaftar di {selectedMethodData?.name}
               </p>
             </CardContent>
           </Card>

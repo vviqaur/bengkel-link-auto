@@ -9,6 +9,10 @@ import BookingStatus from './BookingStatus';
 import Payment from './Payment';
 import Rating from './Rating';
 import Scheduling from './Scheduling';
+import LocationSelection from './LocationSelection';
+import ServiceDetails from './ServiceDetails';
+import ChatRoom from './ChatRoom';
+import CustomerMessages from '../dashboard/customer/CustomerMessages';
 
 interface ServiceFlowProps {
   onBack: () => void;
@@ -47,7 +51,7 @@ interface ScheduleData {
   technician: string;
 }
 
-type FlowStep = 'service-details' | 'workshop-list' | 'workshop-detail' | 'scheduling' | 'pricing' | 'booking-status' | 'payment' | 'rating';
+type FlowStep = 'service-details' | 'location-selection' | 'service-form' | 'workshop-list' | 'workshop-detail' | 'scheduling' | 'pricing' | 'booking-status' | 'payment' | 'rating' | 'chat';
 
 const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   const [currentStep, setCurrentStep] = useState<FlowStep>('service-details');
@@ -55,8 +59,29 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
   const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [bookingType, setBookingType] = useState<'location' | 'workshop' | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState('');
 
   const handleServiceNext = (data: ServiceBookingData) => {
+    setServiceData(data);
+    setCurrentStep('workshop-list');
+  };
+
+  const handleBookingTypeSelect = (type: 'location' | 'workshop') => {
+    setBookingType(type);
+    if (type === 'workshop') {
+      setCurrentStep('workshop-list');
+    } else {
+      setCurrentStep('location-selection');
+    }
+  };
+
+  const handleLocationNext = (location: string) => {
+    setSelectedLocation(location);
+    setCurrentStep('service-form');
+  };
+
+  const handleServiceFormNext = (data: ServiceBookingData) => {
     setServiceData(data);
     setCurrentStep('workshop-list');
   };
@@ -70,7 +95,6 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     if (serviceType === 'call') {
       setCurrentStep('pricing');
     } else {
-      // For book service, go to scheduling first
       setCurrentStep('scheduling');
     }
   };
@@ -94,18 +118,38 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   };
 
   const handleRatingComplete = () => {
-    // Go back to main dashboard or show completion
     onBack();
+  };
+
+  const handleChatOpen = () => {
+    setCurrentStep('chat');
+  };
+
+  const handleCallTechnician = (phoneNumber: string) => {
+    window.open(`tel:${phoneNumber}`, '_self');
   };
 
   // Navigation helpers
   const handleBackToService = () => {
     setCurrentStep('service-details');
     setServiceData(null);
+    setBookingType(null);
+  };
+
+  const handleBackToLocation = () => {
+    setCurrentStep('location-selection');
+  };
+
+  const handleBackToServiceForm = () => {
+    setCurrentStep('service-form');
   };
 
   const handleBackToWorkshops = () => {
-    setCurrentStep('workshop-list');
+    if (serviceType === 'book' && bookingType === 'location') {
+      setCurrentStep('service-form');
+    } else {
+      setCurrentStep('service-details');
+    }
     setSelectedWorkshop(null);
   };
 
@@ -132,6 +176,10 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     setCurrentStep('payment');
   };
 
+  const handleBackFromChat = () => {
+    setCurrentStep('pricing');
+  };
+
   if (currentStep === 'service-details') {
     if (serviceType === 'call') {
       return (
@@ -144,16 +192,35 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
       return (
         <BookService 
           onBack={onBack}
-          onNext={handleServiceNext}
+          onNext={handleBookingTypeSelect}
         />
       );
     }
   }
 
+  if (currentStep === 'location-selection') {
+    return (
+      <LocationSelection
+        onBack={handleBackToService}
+        onNext={handleLocationNext}
+      />
+    );
+  }
+
+  if (currentStep === 'service-form') {
+    return (
+      <ServiceDetails
+        onBack={handleBackToLocation}
+        onNext={handleServiceFormNext}
+        location={selectedLocation}
+      />
+    );
+  }
+
   if (currentStep === 'workshop-list') {
     return (
       <WorkshopList 
-        onBack={handleBackToService}
+        onBack={handleBackToWorkshops}
         onSelectWorkshop={handleWorkshopSelect}
       />
     );
@@ -186,7 +253,23 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
         serviceData={serviceData}
         workshopName={selectedWorkshop.name}
         onBack={serviceType === 'book' ? handleBackToScheduling : handleBackToWorkshopDetail}
-        onNext={() => handlePricingNext(750000)} // Mock total amount
+        onNext={() => handlePricingNext(750000)}
+        onChat={handleChatOpen}
+        onCall={handleCallTechnician}
+        serviceType={serviceType}
+      />
+    );
+  }
+
+  if (currentStep === 'chat' && selectedWorkshop) {
+    const technicianName = scheduleData?.technician || selectedWorkshop.technicians[0]?.name || 'Ahmad Supardi';
+    
+    return (
+      <ChatRoom
+        onBack={handleBackFromChat}
+        onCall={handleCallTechnician}
+        technicianName={technicianName}
+        workshopName={selectedWorkshop.name}
       />
     );
   }

@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, MessageCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -18,9 +19,20 @@ interface PricingEstimationProps {
   workshopName: string;
   onBack: () => void;
   onNext: () => void;
+  onChat?: () => void;
+  onCall?: (phoneNumber: string) => void;
+  serviceType?: 'call' | 'book';
 }
 
-const PricingEstimation = ({ serviceData, workshopName, onBack, onNext }: PricingEstimationProps) => {
+const PricingEstimation = ({ 
+  serviceData, 
+  workshopName, 
+  onBack, 
+  onNext, 
+  onChat, 
+  onCall,
+  serviceType = 'call'
+}: PricingEstimationProps) => {
   const [showModal, setShowModal] = useState(true);
 
   // Mock pricing calculation
@@ -36,6 +48,18 @@ const PricingEstimation = ({ serviceData, workshopName, onBack, onNext }: Pricin
     onNext();
   };
 
+  const handleChat = () => {
+    if (onChat) {
+      onChat();
+    }
+  };
+
+  const handleCall = () => {
+    if (onCall) {
+      onCall('+62 812-3456-7890'); // Mock phone number
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-white shadow-sm border-b border-border p-4">
@@ -44,6 +68,16 @@ const PricingEstimation = ({ serviceData, workshopName, onBack, onNext }: Pricin
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="text-xl font-bold">Estimasi Harga</h1>
+          {serviceType === 'call' && (
+            <div className="ml-auto flex gap-2">
+              <Button variant="outline" size="icon" onClick={handleChat}>
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleCall}>
+                <Phone className="w-5 h-5" />
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 

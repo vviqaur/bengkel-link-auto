@@ -6,37 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface BookServiceProps {
   onBack: () => void;
-  onNext: (data: ServiceBookingData) => void;
-}
-
-interface ServiceBookingData {
-  location: string;
-  vehicleType: string;
-  services: string[];
-  problems: string[];
-  description: string;
-  bookingType?: 'location' | 'workshop';
+  onNext: (type: 'location' | 'workshop') => void;
 }
 
 const BookService = ({ onBack, onNext }: BookServiceProps) => {
-  const [bookingType, setBookingType] = useState<'location' | 'workshop' | null>(null);
-
-  const handleBookingTypeSelect = (type: 'location' | 'workshop') => {
-    setBookingType(type);
-    
-    // For now, we'll simulate the booking data
-    const mockData: ServiceBookingData = {
-      location: type === 'location' ? 'Alamat Customer' : 'Di Bengkel',
-      vehicleType: 'Mobil - Sedan',
-      services: ['Ganti Oli'],
-      problems: [],
-      description: '',
-      bookingType: type
-    };
-    
-    onNext(mockData);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-white shadow-sm border-b border-border p-4">
@@ -57,7 +30,7 @@ const BookService = ({ onBack, onNext }: BookServiceProps) => {
             </p>
           </div>
 
-          <Card className="card-interactive" onClick={() => handleBookingTypeSelect('location')}>
+          <Card className="card-interactive" onClick={() => onNext('location')}>
             <CardContent className="p-6 text-center space-y-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                 <MapPin className="w-8 h-8 text-primary" />
@@ -71,7 +44,7 @@ const BookService = ({ onBack, onNext }: BookServiceProps) => {
             </CardContent>
           </Card>
 
-          <Card className="card-interactive" onClick={() => handleBookingTypeSelect('workshop')}>
+          <Card className="card-interactive" onClick={() => onNext('workshop')}>
             <CardContent className="p-6 text-center space-y-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                 <div className="w-8 h-8 bg-primary rounded text-primary-foreground flex items-center justify-center text-sm font-bold">

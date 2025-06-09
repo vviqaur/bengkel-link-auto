@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignupData } from '../types/auth';
 
@@ -49,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Mock user data based on role
     const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       role: credentials.role,
       name: 'John Doe',
       username: credentials.username || 'johndoe',
@@ -92,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Mock user creation for customer and technician
     const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       role: data.role,
       name: data.name,
       username: data.username,

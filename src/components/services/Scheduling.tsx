@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,9 +41,9 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
   ];
 
   const availableTechnicians = [
-    { id: '1', name: 'Iwan Indrawan', rating: 5.0, available: true },
-    { id: '2', name: 'Dunu Arianna', rating: 4.3, available: true },
-    { id: '3', name: 'Jenna Ortegy', rating: 4.7, available: false }
+    { id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', name: 'Iwan Indrawan', rating: 5.0, available: true },
+    { id: 'b2c3d4e5-f6g7-8901-2345-678901bcdefg', name: 'Dunu Arianna', rating: 4.3, available: true },
+    { id: 'c3d4e5f6-g7h8-9012-3456-789012cdefgh', name: 'Jenna Ortegy', rating: 4.7, available: false }
   ];
 
   const handleContinue = () => {
@@ -125,7 +124,7 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
                 ))}
               </div>
             </CardContent>
-          </Card>
+        </Card>
         )}
 
         {/* Technician Selection */}

@@ -68,7 +68,6 @@ export const useWorkshops = () => {
 const getOperatingHoursText = (operatingHours: any): string => {
   if (!operatingHours) return '08:00 - 18:00';
   
-  const today = new Date().toLocaleLowerCase();
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const currentDay = days[new Date().getDay()];
   

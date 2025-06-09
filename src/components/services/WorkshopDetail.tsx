@@ -58,11 +58,11 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
                 <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
-                    {workshop.distance}
+                    {workshop.distance || '1.2 km'}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    {workshop.estimatedTime}
+                    {workshop.estimatedTime || '15 menit'}
                   </span>
                 </div>
               </div>
@@ -80,7 +80,7 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
               <h4 className="font-medium mb-2">Jam Operasional</h4>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{workshop.operatingHours}</span>
+                <span className="text-sm">{workshop.operatingHours || '08:00 - 18:00'}</span>
               </div>
             </div>
 

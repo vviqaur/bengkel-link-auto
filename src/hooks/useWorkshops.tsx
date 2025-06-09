@@ -16,6 +16,10 @@ export interface Workshop {
   review_count: number | null;
   image_url: string | null;
   is_active: boolean | null;
+  // Add computed properties for UI
+  distance?: string;
+  estimatedTime?: string;
+  operatingHours?: string;
   technicians: Array<{
     id: string;
     name: string;

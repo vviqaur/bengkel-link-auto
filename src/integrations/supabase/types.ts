@@ -9,7 +9,316 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      booking_status_history: {
+        Row: {
+          booking_id: string | null
+          changed_at: string
+          changed_by: string | null
+          id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          booking_id?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          booking_id?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          booking_type: string
+          created_at: string
+          description: string | null
+          estimated_price: number | null
+          final_price: number | null
+          id: string
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          payment_method: string | null
+          payment_status: string | null
+          problems: string[] | null
+          scheduled_date: string
+          scheduled_time: string
+          services: string[]
+          status: string
+          technician_id: string | null
+          updated_at: string
+          user_id: string
+          vehicle_type: string
+          workshop_id: string
+        }
+        Insert: {
+          booking_type: string
+          created_at?: string
+          description?: string | null
+          estimated_price?: number | null
+          final_price?: number | null
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          payment_method?: string | null
+          payment_status?: string | null
+          problems?: string[] | null
+          scheduled_date: string
+          scheduled_time: string
+          services: string[]
+          status?: string
+          technician_id?: string | null
+          updated_at?: string
+          user_id: string
+          vehicle_type: string
+          workshop_id: string
+        }
+        Update: {
+          booking_type?: string
+          created_at?: string
+          description?: string | null
+          estimated_price?: number | null
+          final_price?: number | null
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          payment_method?: string | null
+          payment_status?: string | null
+          problems?: string[] | null
+          scheduled_date?: string
+          scheduled_time?: string
+          services?: string[]
+          status?: string
+          technician_id?: string | null
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string
+          workshop_id?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          message_type: string | null
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          message_type?: string | null
+          sender_id: string
+          sender_type: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          message_type?: string | null
+          sender_id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          technician_id: string | null
+          technician_rating: number | null
+          technician_review: string | null
+          user_id: string
+          workshop_id: string | null
+          workshop_rating: number | null
+          workshop_review: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          technician_id?: string | null
+          technician_rating?: number | null
+          technician_review?: string | null
+          user_id: string
+          workshop_id?: string | null
+          workshop_rating?: number | null
+          workshop_review?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          technician_id?: string | null
+          technician_rating?: number | null
+          technician_review?: string | null
+          user_id?: string
+          workshop_id?: string | null
+          workshop_rating?: number | null
+          workshop_review?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technicians: {
+        Row: {
+          created_at: string
+          id: string
+          is_available: boolean | null
+          name: string
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          specialties: string[] | null
+          updated_at: string
+          workshop_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_available?: boolean | null
+          name: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          updated_at?: string
+          workshop_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          updated_at?: string
+          workshop_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technicians_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshops: {
+        Row: {
+          address: string
+          created_at: string
+          email: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          operating_hours: Json | null
+          phone: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          operating_hours?: Json | null
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          operating_hours?: Json | null
+          phone?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

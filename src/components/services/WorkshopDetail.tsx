@@ -4,23 +4,7 @@ import { ArrowLeft, Star, MapPin, Clock, Users, Calendar, Phone } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-interface Workshop {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  distance: string;
-  estimatedTime: string;
-  operatingHours: string;
-  address: string;
-  technicians: Array<{
-    name: string;
-    rating: number;
-  }>;
-  services: string[];
-}
+import { Workshop } from '@/hooks/useWorkshops';
 
 interface WorkshopDetailProps {
   workshop: Workshop;
@@ -48,7 +32,7 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
             <div className="flex gap-4">
               <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center">
                 <img 
-                  src={workshop.image} 
+                  src={workshop.image_url || '/placeholder.svg'} 
                   alt={workshop.name}
                   className="w-full h-full object-cover rounded-lg"
                   onError={(e) => {
@@ -67,8 +51,8 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{workshop.rating}</span>
-                    <span className="text-sm text-muted-foreground">({workshop.reviewCount} ulasan)</span>
+                    <span className="font-medium">{workshop.rating || 0}</span>
+                    <span className="text-sm text-muted-foreground">({workshop.review_count || 0} ulasan)</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -111,7 +95,7 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
             <div>
               <h4 className="font-medium mb-2">Layanan Tersedia</h4>
               <div className="flex flex-wrap gap-2">
-                {workshop.services.map((service, index) => (
+                {workshop.services?.map((service, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
                     {service}
                   </Badge>
@@ -128,7 +112,7 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {workshop.technicians.map((tech, index) => (
+              {workshop.technicians?.map((tech, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -138,12 +122,14 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
                     </div>
                     <div>
                       <p className="font-medium">{tech.name}</p>
-                      <p className="text-sm text-muted-foreground">Teknisi Senior</p>
+                      <p className="text-sm text-muted-foreground">
+                        {tech.specialties?.join(', ') || 'Teknisi Senior'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{tech.rating}</span>
+                    <span className="text-sm font-medium">{tech.rating || 0}</span>
                   </div>
                 </div>
               ))}
@@ -153,9 +139,11 @@ const WorkshopDetail = ({ workshop, onBack, onNext, serviceType }: WorkshopDetai
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Button variant="outline" size="icon">
-            <Phone className="w-4 h-4" />
-          </Button>
+          {workshop.phone && (
+            <Button variant="outline" size="icon" onClick={() => window.open(`tel:${workshop.phone}`, '_self')}>
+              <Phone className="w-4 h-4" />
+            </Button>
+          )}
           <Button className="flex-1 btn-primary" onClick={onNext}>
             {serviceType === 'call' ? 'Lihat Estimasi Harga' : 'Pilih Jadwal'}
           </Button>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import CallTechnician from './CallTechnician';
 import WorkshopList from './WorkshopList';
@@ -13,6 +12,9 @@ import LocationSelection from './LocationSelection';
 import ServiceDetails from './ServiceDetails';
 import ChatRoom from './ChatRoom';
 import CustomerMessages from '../dashboard/customer/CustomerMessages';
+import { Workshop } from '@/hooks/useWorkshops';
+import { useCreateBooking, BookingData } from '@/hooks/useBookings';
+import { toast } from 'sonner';
 
 interface ServiceFlowProps {
   onBack: () => void;
@@ -26,23 +28,6 @@ interface ServiceBookingData {
   problems: string[];
   description: string;
   bookingType?: 'location' | 'workshop';
-}
-
-interface Workshop {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  distance: string;
-  estimatedTime: string;
-  operatingHours: string;
-  address: string;
-  technicians: Array<{
-    name: string;
-    rating: number;
-  }>;
-  services: string[];
 }
 
 interface ScheduleData {
@@ -61,6 +46,9 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [bookingType, setBookingType] = useState<'location' | 'workshop' | null>(null);
   const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedTechnician, setSelectedTechnician] = useState<string | null>(null);
+
+  const createBookingMutation = useCreateBooking();
 
   const handleServiceNext = (data: ServiceBookingData) => {
     setServiceData(data);
@@ -101,12 +89,42 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
 
   const handleScheduleNext = (data: ScheduleData) => {
     setScheduleData(data);
+    // Find technician ID from selected workshop
+    const technician = selectedWorkshop?.technicians?.find(t => t.name === data.technician);
+    setSelectedTechnician(technician?.id || null);
     setCurrentStep('pricing');
   };
 
-  const handlePricingNext = (amount: number) => {
+  const handlePricingNext = async (amount: number) => {
     setTotalAmount(amount);
-    setCurrentStep('booking-status');
+    
+    // Create booking if we have all required data
+    if (serviceData && selectedWorkshop && scheduleData) {
+      const bookingData: BookingData = {
+        workshop_id: selectedWorkshop.id,
+        technician_id: selectedTechnician || undefined,
+        booking_type: bookingType || 'workshop',
+        vehicle_type: serviceData.vehicleType,
+        services: serviceData.services,
+        problems: serviceData.problems.length > 0 ? serviceData.problems : undefined,
+        description: serviceData.description || undefined,
+        location_address: bookingType === 'location' ? selectedLocation : undefined,
+        scheduled_date: scheduleData.date,
+        scheduled_time: scheduleData.time,
+        estimated_price: amount,
+      };
+
+      try {
+        await createBookingMutation.mutateAsync(bookingData);
+        toast.success('Booking berhasil dibuat!');
+        setCurrentStep('booking-status');
+      } catch (error) {
+        console.error('Error creating booking:', error);
+        toast.error('Gagal membuat booking. Silakan coba lagi.');
+      }
+    } else {
+      setCurrentStep('booking-status');
+    }
   };
 
   const handlePaymentNext = () => {
@@ -262,7 +280,7 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   }
 
   if (currentStep === 'chat' && selectedWorkshop) {
-    const technicianName = scheduleData?.technician || selectedWorkshop.technicians[0]?.name || 'Ahmad Supardi';
+    const technicianName = scheduleData?.technician || selectedWorkshop.technicians?.[0]?.name || 'Ahmad Supardi';
     
     return (
       <ChatRoom
@@ -296,7 +314,7 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
   }
 
   if (currentStep === 'rating' && selectedWorkshop) {
-    const technicianName = scheduleData?.technician || selectedWorkshop.technicians[0]?.name || 'Ahmad Supardi';
+    const technicianName = scheduleData?.technician || selectedWorkshop.technicians?.[0]?.name || 'Ahmad Supardi';
     
     return (
       <Rating

@@ -4,23 +4,8 @@ import { ArrowLeft, Star, MapPin, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-interface Workshop {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  distance: string;
-  estimatedTime: string;
-  operatingHours: string;
-  address: string;
-  technicians: Array<{
-    name: string;
-    rating: number;
-  }>;
-  services: string[];
-}
+import { useWorkshops, Workshop } from '@/hooks/useWorkshops';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface WorkshopListProps {
   onBack: () => void;
@@ -28,59 +13,51 @@ interface WorkshopListProps {
 }
 
 const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
-  const [workshops] = useState<Workshop[]>([
-    {
-      id: '1',
-      name: 'Bengkel Jaya Abadi Auto',
-      image: '/lovable-uploads/workshop1.jpg',
-      rating: 4.8,
-      reviewCount: 814,
-      distance: '0.8 km',
-      estimatedTime: '15 menit',
-      operatingHours: '08:00 - 18:00',
-      address: 'RUKO FRANKFURT, Jl. Boulevard Raya Gading Serpong No.1 Blok 2C',
-      technicians: [
-        { name: 'Iwan Indrawan', rating: 5.0 },
-        { name: 'Dunu Arianna', rating: 4.3 },
-        { name: 'Jenna Ortegy', rating: 4.7 }
-      ],
-      services: ['Servis Rutin', 'Ganti Oli', 'Tune Up', 'AC', 'Rem', 'Kelistrikan']
-    },
-    {
-      id: '2',
-      name: 'Bengkel Sumber Rezeki Auto Repair',
-      image: '/lovable-uploads/workshop2.jpg',
-      rating: 4.4,
-      reviewCount: 521,
-      distance: '1.2 km',
-      estimatedTime: '20 menit',
-      operatingHours: '08:30 - 17:00',
-      address: 'Jl. Bhayangkara 1 No.91, Paku Jaya, Kec. Serpong Utara',
-      technicians: [
-        { name: 'Andi Wijaya', rating: 4.8 },
-        { name: 'Budi Santoso', rating: 4.6 },
-        { name: 'Cahya Rizky', rating: 4.7 }
-      ],
-      services: ['Servis Rutin', 'Ganti Oli', 'Tune Up', 'AC', 'Rem']
-    },
-    {
-      id: '3',
-      name: 'Bengkel Dokter Mobil Gading Serpong',
-      image: '/lovable-uploads/workshop3.jpg',
-      rating: 4.7,
-      reviewCount: 515,
-      distance: '1.5 km',
-      estimatedTime: '25 menit',
-      operatingHours: '09:00 - 21:00',
-      address: 'Ruko Paramount Gadget Blok A.7, Curug Sangereng',
-      technicians: [
-        { name: 'Ahmad Subhan', rating: 4.9 },
-        { name: 'Bella Oktaviani', rating: 4.8 },
-        { name: 'Candra Wijaya', rating: 4.7 }
-      ],
-      services: ['Servis Rutin', 'Ganti Oli', 'Tune Up', 'AC', 'Rem', 'Kelistrikan']
-    }
-  ]);
+  const { data: workshops, isLoading, error } = useWorkshops();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-white shadow-sm border-b border-border p-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={onBack}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-bold">Pilih Bengkel</h1>
+          </div>
+        </header>
+        <main className="p-4">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <div className="flex gap-4">
+                    <Skeleton className="w-20 h-20 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Error loading workshops</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,13 +72,13 @@ const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
 
       <main className="p-4">
         <div className="space-y-4">
-          {workshops.map((workshop) => (
+          {workshops?.map((workshop) => (
             <Card key={workshop.id} className="card-interactive">
               <CardHeader className="pb-3">
                 <div className="flex gap-4">
                   <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
                     <img 
-                      src={workshop.image} 
+                      src={workshop.image_url || '/placeholder.svg'} 
                       alt={workshop.name}
                       className="w-full h-full object-cover rounded-lg"
                       onError={(e) => {
@@ -122,8 +99,8 @@ const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{workshop.rating}</span>
-                            <span className="text-sm text-muted-foreground">({workshop.reviewCount})</span>
+                            <span className="text-sm font-medium">{workshop.rating || 0}</span>
+                            <span className="text-sm text-muted-foreground">({workshop.review_count || 0})</span>
                           </div>
                           <Badge variant="secondary" className="text-xs">
                             {workshop.distance}
@@ -143,7 +120,7 @@ const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-muted-foreground" />
-                    <span>{workshop.technicians.length} teknisi</span>
+                    <span>{workshop.technicians?.length || 0} teknisi</span>
                   </div>
                 </div>
 
@@ -157,14 +134,14 @@ const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Layanan:</p>
                   <div className="flex flex-wrap gap-1">
-                    {workshop.services.slice(0, 4).map((service, index) => (
+                    {workshop.services?.slice(0, 4).map((service, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {service}
                       </Badge>
                     ))}
-                    {workshop.services.length > 4 && (
+                    {(workshop.services?.length || 0) > 4 && (
                       <Badge variant="outline" className="text-xs">
-                        +{workshop.services.length - 4} lainnya
+                        +{(workshop.services?.length || 0) - 4} lainnya
                       </Badge>
                     )}
                   </div>
@@ -173,12 +150,12 @@ const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Teknisi Terbaik:</p>
                   <div className="space-y-1">
-                    {workshop.technicians.slice(0, 2).map((tech, index) => (
+                    {workshop.technicians?.slice(0, 2).map((tech, index) => (
                       <div key={index} className="flex items-center justify-between text-sm">
                         <span>{tech.name}</span>
                         <div className="flex items-center gap-1">
                           <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          <span>{tech.rating}</span>
+                          <span>{tech.rating || 0}</span>
                         </div>
                       </div>
                     ))}
@@ -187,7 +164,7 @@ const WorkshopList = ({ onBack, onSelectWorkshop }: WorkshopListProps) => {
 
                 <Button 
                   className="w-full btn-primary"
-                  onClick={() => onSelectWorkshop(workshop)}
+                  onClick={() => onSelectWorkshop(workshop as Workshop)}
                 >
                   Pilih Bengkel
                 </Button>

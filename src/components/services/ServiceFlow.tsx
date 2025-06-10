@@ -259,6 +259,7 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
     return (
       <Scheduling
         workshopName={selectedWorkshop.name}
+        workshop={selectedWorkshop}
         onBack={handleBackToWorkshopDetail}
         onNext={handleScheduleNext}
       />

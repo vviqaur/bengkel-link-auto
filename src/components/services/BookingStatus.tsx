@@ -9,11 +9,13 @@ interface BookingStatusProps {
   onBack: () => void;
   onPayment: () => void;
   serviceType: 'call' | 'book';
+  onCall?: (phoneNumber: string) => void;
+  onChat?: () => void;
 }
 
 type BookingStep = 'searching' | 'confirmed' | 'on_way' | 'arrived' | 'in_progress' | 'completed';
 
-const BookingStatus = ({ onBack, onPayment, serviceType }: BookingStatusProps) => {
+const BookingStatus = ({ onBack, onPayment, serviceType, onCall, onChat }: BookingStatusProps) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('searching');
   const [estimatedTime, setEstimatedTime] = useState(15);
 
@@ -64,6 +66,20 @@ const BookingStatus = ({ onBack, onPayment, serviceType }: BookingStatusProps) =
     if (stepIndex < currentIndex) return 'completed';
     if (stepIndex === currentIndex) return 'active';
     return 'pending';
+  };
+
+  const handleCall = () => {
+    if (onCall) {
+      onCall(technician.phone);
+    } else {
+      window.open(`tel:${technician.phone}`, '_self');
+    }
+  };
+
+  const handleChat = () => {
+    if (onChat) {
+      onChat();
+    }
   };
 
   return (
@@ -158,10 +174,10 @@ const BookingStatus = ({ onBack, onPayment, serviceType }: BookingStatusProps) =
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={handleCall}>
                     <Phone className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={handleChat}>
                     <MessageCircle className="w-4 h-4" />
                   </Button>
                 </div>
@@ -176,7 +192,7 @@ const BookingStatus = ({ onBack, onPayment, serviceType }: BookingStatusProps) =
             <Button className="w-full btn-primary" onClick={onPayment}>
               Go to Detail Payment
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={handleChat}>
               Chat Teknisi
             </Button>
           </div>

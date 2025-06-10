@@ -1,25 +1,30 @@
+
 import { useState } from 'react';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Workshop } from '@/hooks/useWorkshops';
 
 interface SchedulingProps {
   onBack: () => void;
   onNext: (scheduleData: ScheduleData) => void;
   workshopName: string;
+  workshop: Workshop;
 }
 
 interface ScheduleData {
   date: string;
   time: string;
   technician: string;
+  technicianId: string;
 }
 
-const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
+const Scheduling = ({ onBack, onNext, workshopName, workshop }: SchedulingProps) => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedTechnician, setSelectedTechnician] = useState('');
+  const [selectedTechnicianId, setSelectedTechnicianId] = useState('');
 
   // Generate available dates (next 7 days)
   const availableDates = Array.from({ length: 7 }, (_, i) => {
@@ -40,18 +45,18 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
     '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
-  const availableTechnicians = [
-    { id: 'a1b2c3d4-e5f6-7890-1234-567890abcdef', name: 'Iwan Indrawan', rating: 5.0, available: true },
-    { id: 'b2c3d4e5-f6g7-8901-2345-678901bcdefg', name: 'Dunu Arianna', rating: 4.3, available: true },
-    { id: 'c3d4e5f6-g7h8-9012-3456-789012cdefgh', name: 'Jenna Ortegy', rating: 4.7, available: false }
-  ];
+  const handleTechnicianSelect = (technicianName: string, technicianId: string) => {
+    setSelectedTechnician(technicianName);
+    setSelectedTechnicianId(technicianId);
+  };
 
   const handleContinue = () => {
-    if (selectedDate && selectedTime && selectedTechnician) {
+    if (selectedDate && selectedTime && selectedTechnician && selectedTechnicianId) {
       const scheduleData: ScheduleData = {
         date: selectedDate,
         time: selectedTime,
-        technician: selectedTechnician
+        technician: selectedTechnician,
+        technicianId: selectedTechnicianId
       };
       onNext(scheduleData);
     }
@@ -128,7 +133,7 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
         )}
 
         {/* Technician Selection */}
-        {selectedTime && (
+        {selectedTime && workshop.technicians && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -138,17 +143,17 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {availableTechnicians.map((tech) => (
+                {workshop.technicians.map((tech) => (
                   <div
                     key={tech.id}
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedTechnician === tech.name
+                      selectedTechnicianId === tech.id
                         ? 'border-primary bg-primary/5'
-                        : tech.available
+                        : tech.is_available
                         ? 'border-border hover:border-primary/50'
                         : 'border-border bg-muted/50 cursor-not-allowed'
                     }`}
-                    onClick={() => tech.available && setSelectedTechnician(tech.name)}
+                    onClick={() => tech.is_available && handleTechnicianSelect(tech.name, tech.id)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -159,15 +164,15 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
                         </div>
                         <div>
                           <p className={`font-medium ${
-                            tech.available ? '' : 'text-muted-foreground'
+                            tech.is_available ? '' : 'text-muted-foreground'
                           }`}>
                             {tech.name}
                           </p>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1">
-                              <span className="text-sm">⭐ {tech.rating}</span>
+                              <span className="text-sm">⭐ {tech.rating || 0}</span>
                             </div>
-                            {!tech.available && (
+                            {!tech.is_available && (
                               <Badge variant="secondary" className="text-xs">
                                 Tidak Tersedia
                               </Badge>
@@ -175,7 +180,7 @@ const Scheduling = ({ onBack, onNext, workshopName }: SchedulingProps) => {
                           </div>
                         </div>
                       </div>
-                      {selectedTechnician === tech.name && (
+                      {selectedTechnicianId === tech.id && (
                         <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                         </div>

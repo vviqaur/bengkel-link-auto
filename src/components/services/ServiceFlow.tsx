@@ -297,6 +297,8 @@ const ServiceFlow = ({ onBack, serviceType }: ServiceFlowProps) => {
       <BookingStatus
         onBack={handleBackToPricing}
         onPayment={handlePaymentNext}
+        onCall={handleCallTechnician}
+        onChat={handleChatOpen}
         serviceType={serviceType}
       />
     );

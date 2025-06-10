@@ -1,5 +1,8 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignupData } from '../types/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -20,50 +23,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    // Check for existing session
-    const storedUser = localStorage.getItem('bengkelink_user');
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
+    // Get initial session
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const mockUser: User = {
+          id: session.user.id,
+          role: 'customer', // Default role, could be stored in user metadata
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'user',
+          email: session.user.email || '',
+          phone: session.user.user_metadata?.phone || '',
+          isVerified: session.user.email_confirmed_at ? true : false,
+          createdAt: new Date(session.user.created_at),
+        };
+
         setAuthState({
-          user,
+          user: mockUser,
           isAuthenticated: true,
           isLoading: false,
         });
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('bengkelink_user');
+      } else {
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
-    } else {
-      setAuthState(prev => ({ ...prev, isLoading: false }));
-    }
+    };
+
+    initSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const mockUser: User = {
+          id: session.user.id,
+          role: 'customer',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'user',
+          email: session.user.email || '',
+          phone: session.user.user_metadata?.phone || '',
+          isVerified: session.user.email_confirmed_at ? true : false,
+          createdAt: new Date(session.user.created_at),
+        };
+
+        setAuthState({
+          user: mockUser,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (credentials: LoginCredentials) => {
     console.log('Login attempt:', credentials);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock user data based on role
-    const mockUser: User = {
-      id: crypto.randomUUID(),
-      role: credentials.role,
-      name: 'John Doe',
-      username: credentials.username || 'johndoe',
-      email: credentials.email || 'john@example.com',
-      phone: '+62812345678',
-      isVerified: true,
-      createdAt: new Date(),
-    };
-
-    localStorage.setItem('bengkelink_user', JSON.stringify(mockUser));
-    setAuthState({
-      user: mockUser,
-      isAuthenticated: true,
-      isLoading: false,
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email || '',
+      password: credentials.password,
     });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data.user) {
+      toast.success('Login berhasil!');
+    }
   };
 
   const signup = async (data: SignupData) => {
@@ -80,41 +113,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Password harus minimal 4 huruf, 2 angka, dan 1 karakter khusus');
     }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
     // For workshop registration, show pending message
     if (data.role === 'workshop') {
-      // Don't log in, just show success message
+      toast.success('Pendaftaran bengkel sedang diproses. Anda akan dihubungi dalam 1-2 hari kerja.');
       return;
     }
 
-    // Mock user creation for customer and technician
-    const mockUser: User = {
-      id: crypto.randomUUID(),
-      role: data.role,
-      name: data.name,
-      username: data.username,
+    const { error } = await supabase.auth.signUp({
       email: data.email,
-      phone: data.phone,
-      isVerified: false, // Will be verified after email verification
-      createdAt: new Date(),
-    };
+      password: data.password,
+      options: {
+        data: {
+          name: data.name,
+          username: data.username,
+          phone: data.phone,
+          role: data.role,
+        },
+      },
+    });
 
-    // Simulate email verification process
-    setTimeout(() => {
-      mockUser.isVerified = true;
-      localStorage.setItem('bengkelink_user', JSON.stringify(mockUser));
-      setAuthState({
-        user: mockUser,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    }, 2000);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    toast.success('Pendaftaran berhasil! Silakan cek email untuk verifikasi.');
   };
 
-  const logout = () => {
-    localStorage.removeItem('bengkelink_user');
+  const logout = async () => {
+    await supabase.auth.signOut();
     setAuthState({
       user: null,
       isAuthenticated: false,
@@ -123,20 +149,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const verifyEmail = async (token: string) => {
-    // Simulate email verification
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // This would typically be handled by Supabase automatically
     console.log('Email verified with token:', token);
   };
 
   const forgotPassword = async (email: string) => {
-    // Simulate forgot password
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Password reset email sent to:', email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) {
+      throw new Error(error.message);
+    }
+    toast.success('Email reset password telah dikirim!');
   };
 
   const resetPassword = async (token: string, password: string) => {
-    // Simulate password reset
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // This would be handled in a separate reset password page
     console.log('Password reset with token:', token);
   };
 

@@ -28,22 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        const mockUser: User = {
-          id: session.user.id,
-          role: 'customer', // Default role, could be stored in user metadata
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'user',
-          email: session.user.email || '',
-          phone: session.user.user_metadata?.phone || '',
-          isVerified: session.user.email_confirmed_at ? true : false,
-          createdAt: new Date(session.user.created_at),
-        };
-
-        setAuthState({
-          user: mockUser,
-          isAuthenticated: true,
-          isLoading: false,
-        });
+        await loadUserProfile(session.user.id);
       } else {
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
@@ -54,22 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const mockUser: User = {
-          id: session.user.id,
-          role: 'customer',
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'user',
-          email: session.user.email || '',
-          phone: session.user.user_metadata?.phone || '',
-          isVerified: session.user.email_confirmed_at ? true : false,
-          createdAt: new Date(session.user.created_at),
-        };
-
-        setAuthState({
-          user: mockUser,
-          isAuthenticated: true,
-          isLoading: false,
-        });
+        await loadUserProfile(session.user.id);
       } else {
         setAuthState({
           user: null,
@@ -81,6 +51,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      // Get profile from the profiles table
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        return;
+      }
+
+      const user: User = {
+        id: profile.id,
+        role: profile.role,
+        name: profile.name,
+        username: profile.username,
+        email: profile.username, // Will be overridden if we have proper email
+        phone: profile.phone,
+        profilePhoto: profile.profile_photo_url,
+        address: profile.address,
+        isVerified: profile.is_verified,
+        createdAt: new Date(profile.created_at),
+      };
+
+      setAuthState({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+      setAuthState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    }
+  };
 
   const login = async (credentials: LoginCredentials) => {
     console.log('Login attempt:', credentials);
@@ -125,9 +142,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: {
         data: {
           name: data.name,
-          username: data.username,
+          username: data.username || data.email.split('@')[0],
           phone: data.phone,
           role: data.role,
+          partnership_number: data.partnershipNumber,
+          workshop_name: data.workshopName,
+          id_number: data.idNumber,
+          date_of_birth: data.dateOfBirth?.toISOString(),
         },
       },
     });

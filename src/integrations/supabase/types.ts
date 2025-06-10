@@ -172,6 +172,131 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          id: string
+          is_verified: boolean | null
+          name: string
+          phone: string
+          profile_photo_url: string | null
+          role: string
+          updated_at: string | null
+          username: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          id: string
+          is_verified?: boolean | null
+          name: string
+          phone: string
+          profile_photo_url?: string | null
+          role: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          id?: string
+          is_verified?: boolean | null
+          name?: string
+          phone?: string
+          profile_photo_url?: string | null
+          role?: string
+          updated_at?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      promos: {
+        Row: {
+          created_at: string | null
+          description: string
+          discount_amount: number | null
+          discount_percentage: number | null
+          eligibility_criteria: Json | null
+          expiry_date: string
+          id: string
+          is_active: boolean | null
+          poster_image_url: string | null
+          promo_code: string | null
+          terms_conditions: string[] | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          eligibility_criteria?: Json | null
+          expiry_date: string
+          id?: string
+          is_active?: boolean | null
+          poster_image_url?: string | null
+          promo_code?: string | null
+          terms_conditions?: string[] | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          eligibility_criteria?: Json | null
+          expiry_date?: string
+          id?: string
+          is_active?: boolean | null
+          poster_image_url?: string | null
+          promo_code?: string | null
+          terms_conditions?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           booking_id: string | null
@@ -233,6 +358,50 @@ export type Database = {
           },
         ]
       }
+      technician_profiles: {
+        Row: {
+          id: string
+          id_number: string
+          id_photo_url: string
+          is_available: boolean | null
+          partnership_number: string
+          rating: number | null
+          review_count: number | null
+          specialties: string[] | null
+          workshop_name: string
+        }
+        Insert: {
+          id: string
+          id_number: string
+          id_photo_url: string
+          is_available?: boolean | null
+          partnership_number: string
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          workshop_name: string
+        }
+        Update: {
+          id?: string
+          id_number?: string
+          id_photo_url?: string
+          is_available?: boolean | null
+          partnership_number?: string
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          workshop_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       technicians: {
         Row: {
           created_at: string
@@ -276,6 +445,125 @@ export type Database = {
             columns: ["workshop_id"]
             isOneToOne: false
             referencedRelation: "workshops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_promo_claims: {
+        Row: {
+          claimed_at: string | null
+          id: string
+          is_used: boolean | null
+          promo_id: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          id?: string
+          is_used?: boolean | null
+          promo_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          id?: string
+          is_used?: boolean | null
+          promo_id?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_promo_claims_promo_id_fkey"
+            columns: ["promo_id"]
+            isOneToOne: false
+            referencedRelation: "promos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_promo_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workshop_profiles: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          bank_name: string | null
+          business_number: string | null
+          city: string
+          detail_address: string
+          id: string
+          is_approved: boolean | null
+          operating_hours: Json
+          owner_name: string
+          partnership_number: string | null
+          postal_code: string
+          province: string
+          rating: number | null
+          review_count: number | null
+          services: string[]
+          tax_number: string | null
+          technician_count: number
+          vehicle_types: string[]
+          workshop_name: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          business_number?: string | null
+          city: string
+          detail_address: string
+          id: string
+          is_approved?: boolean | null
+          operating_hours: Json
+          owner_name: string
+          partnership_number?: string | null
+          postal_code: string
+          province: string
+          rating?: number | null
+          review_count?: number | null
+          services: string[]
+          tax_number?: string | null
+          technician_count: number
+          vehicle_types: string[]
+          workshop_name: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          business_number?: string | null
+          city?: string
+          detail_address?: string
+          id?: string
+          is_approved?: boolean | null
+          operating_hours?: Json
+          owner_name?: string
+          partnership_number?: string | null
+          postal_code?: string
+          province?: string
+          rating?: number | null
+          review_count?: number | null
+          services?: string[]
+          tax_number?: string | null
+          technician_count?: number
+          vehicle_types?: string[]
+          workshop_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

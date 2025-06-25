@@ -18,10 +18,12 @@ export interface Workshop {
   review_count: number;
   is_approved: boolean;
   // Add computed properties for UI
+  name: string; // Add this for compatibility
   distance?: string;
   estimatedTime?: string;
   operatingHours?: string;
   image?: string;
+  image_url?: string; // Add this for compatibility
   address?: string;
   phone?: string;
   email?: string;
@@ -80,11 +82,12 @@ export const useWorkshops = () => {
         review_count: workshop.review_count || 0,
         is_approved: workshop.is_approved,
         // Computed properties for backward compatibility
-        name: workshop.workshop_name,
+        name: workshop.workshop_name, // Map workshop_name to name
         address: `${workshop.detail_address}, ${workshop.city}, ${workshop.province} ${workshop.postal_code}`,
         phone: workshop.profiles?.phone || null,
         email: workshop.profiles?.email || null,
         image: workshop.profiles?.profile_photo_url || '/placeholder.svg',
+        image_url: workshop.profiles?.profile_photo_url || '/placeholder.svg', // Add image_url mapping
         distance: '1.2 km', // This would be calculated based on user location
         estimatedTime: '15 menit', // This would be calculated based on distance
         operatingHours: getOperatingHoursText(workshop.operating_hours),

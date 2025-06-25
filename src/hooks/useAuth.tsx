@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignupData } from '../types/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,9 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Ensure role is properly typed
+      const userRole = profile.role as 'customer' | 'technician' | 'workshop';
+
       const user: User = {
         id: profile.id,
-        role: profile.role,
+        role: userRole, // Use the properly typed role
         name: profile.name,
         username: profile.username,
         email: profile.email || profile.username,

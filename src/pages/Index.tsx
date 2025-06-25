@@ -39,14 +39,19 @@ const Index = () => {
   }
 
   // Show appropriate dashboard based on user role
+  console.log('User authenticated, role:', user.role);
   switch (user.role) {
     case 'customer':
+      console.log('Redirecting to Customer Dashboard');
       return <CustomerDashboard />;
     case 'technician':
+      console.log('Redirecting to Technician Dashboard');
       return <TechnicianDashboard />;
     case 'workshop':
+      console.log('Redirecting to Workshop Dashboard');
       return <WorkshopDashboard />;
     default:
+      console.log('Unknown role, showing auth wrapper');
       return <AuthWrapper />;
   }
 };

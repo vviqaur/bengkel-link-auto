@@ -26,16 +26,6 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Remove password confirmation validation for login
-    // if (formData.password !== formData.confirmPassword) {
-    //   toast({
-    //     title: "Error",
-    //     description: "Password dan konfirmasi password tidak sama",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
-
     setIsLoading(true);
     try {
       console.log('Form submission:', { role, formData });
@@ -62,6 +52,11 @@ const LoginForm = () => {
         title: "Berhasil masuk",
         description: "Selamat datang di BengkeLink!",
       });
+      
+      // The redirection will be handled automatically by the Index component
+      // when the authentication state changes
+      console.log('Login successful, user will be redirected automatically');
+      
     } catch (error) {
       console.error('Login form error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat login';
@@ -160,19 +155,6 @@ const LoginForm = () => {
               required
             />
           </div>
-
-          {/* Remove confirm password field for login form */}
-          {/* <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Konfirmasi password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              required
-            />
-          </div> */}
 
           {role !== 'workshop' && (
             <div className="text-center">

@@ -49,8 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Auth state changed:', event, session?.user?.email);
       
       if (session?.user) {
+        console.log('User authenticated, loading profile...');
         await loadUserProfile(session.user.id);
       } else {
+        console.log('User logged out, clearing state...');
         setAuthState({
           user: null,
           isAuthenticated: false,
@@ -111,11 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: new Date(profile.created_at),
       };
 
+      console.log('Setting authenticated user with role:', userRole);
       setAuthState({
         user,
         isAuthenticated: true,
         isLoading: false,
       });
+      
+      // Log successful authentication with role info
+      console.log(`User authenticated successfully as ${userRole}:`, user.name);
+      
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
       setAuthState({
@@ -211,7 +218,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.user) {
         console.log('Login successful for user:', data.user.email);
-        toast.success('Login berhasil!');
+        console.log('Auth state will be updated automatically by onAuthStateChange');
+        toast.success('Login berhasil! Mengarahkan ke dashboard...');
       }
     } catch (error) {
       console.error('Login error:', error);

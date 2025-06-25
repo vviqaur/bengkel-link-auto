@@ -8,10 +8,13 @@ export interface Profile {
   role: 'customer' | 'technician' | 'workshop';
   name: string;
   username?: string;
+  email?: string;
   phone: string;
   profile_photo_url?: string;
   address?: string;
   date_of_birth?: string;
+  id_number?: string;
+  id_photo_url?: string;
   is_verified: boolean;
   created_at: string;
   updated_at: string;
@@ -135,6 +138,54 @@ export const useUpdateProfile = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+};
+
+export const useUpdateTechnicianProfile = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (updatedData: Partial<TechnicianProfile>) => {
+      if (!user) throw new Error('User must be authenticated');
+
+      const { data, error } = await supabase
+        .from('technician_profiles')
+        .update(updatedData)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['technician-profile'] });
+    },
+  });
+};
+
+export const useUpdateWorkshopProfile = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (updatedData: Partial<WorkshopProfile>) => {
+      if (!user) throw new Error('User must be authenticated');
+
+      const { data, error } = await supabase
+        .from('workshop_profiles')
+        .update(updatedData)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workshop-profile'] });
     },
   });
 };

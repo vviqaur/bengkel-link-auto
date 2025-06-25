@@ -49,6 +49,7 @@ export type Database = {
           booking_type: string
           created_at: string
           description: string | null
+          discount_amount: number | null
           estimated_price: number | null
           final_price: number | null
           id: string
@@ -58,6 +59,7 @@ export type Database = {
           payment_method: string | null
           payment_status: string | null
           problems: string[] | null
+          promo_code: string | null
           scheduled_date: string
           scheduled_time: string
           services: string[]
@@ -72,6 +74,7 @@ export type Database = {
           booking_type: string
           created_at?: string
           description?: string | null
+          discount_amount?: number | null
           estimated_price?: number | null
           final_price?: number | null
           id?: string
@@ -81,6 +84,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           problems?: string[] | null
+          promo_code?: string | null
           scheduled_date: string
           scheduled_time: string
           services: string[]
@@ -95,6 +99,7 @@ export type Database = {
           booking_type?: string
           created_at?: string
           description?: string | null
+          discount_amount?: number | null
           estimated_price?: number | null
           final_price?: number | null
           id?: string
@@ -104,6 +109,7 @@ export type Database = {
           payment_method?: string | null
           payment_status?: string | null
           problems?: string[] | null
+          promo_code?: string | null
           scheduled_date?: string
           scheduled_time?: string
           services?: string[]
@@ -215,7 +221,10 @@ export type Database = {
           address: string | null
           created_at: string | null
           date_of_birth: string | null
+          email: string | null
           id: string
+          id_number: string | null
+          id_photo_url: string | null
           is_verified: boolean | null
           name: string
           phone: string
@@ -228,7 +237,10 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          email?: string | null
           id: string
+          id_number?: string | null
+          id_photo_url?: string | null
           is_verified?: boolean | null
           name: string
           phone: string
@@ -241,7 +253,10 @@ export type Database = {
           address?: string | null
           created_at?: string | null
           date_of_birth?: string | null
+          email?: string | null
           id?: string
+          id_number?: string | null
+          id_photo_url?: string | null
           is_verified?: boolean | null
           name?: string
           phone?: string

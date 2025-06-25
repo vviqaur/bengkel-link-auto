@@ -24,11 +24,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Get initial session
     const initSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Initializing session...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
       
       if (session?.user) {
+        console.log('Found existing session for user:', session.user.email);
         await loadUserProfile(session.user.id);
       } else {
+        console.log('No existing session found');
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
     };
@@ -37,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
       if (session?.user) {
         await loadUserProfile(session.user.id);
       } else {
@@ -53,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserProfile = async (userId: string) => {
     try {
+      console.log('Loading profile for user:', userId);
+      
       // Get profile from the profiles table
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -70,12 +83,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      if (!profile) {
+        console.error('No profile found for user:', userId);
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
+        return;
+      }
+
+      console.log('Profile loaded successfully:', profile);
+
       // Ensure role is properly typed
       const userRole = profile.role as 'customer' | 'technician' | 'workshop';
 
       const user: User = {
         id: profile.id,
-        role: userRole, // Use the properly typed role
+        role: userRole,
         name: profile.name,
         username: profile.username,
         email: profile.email || profile.username,
@@ -102,41 +127,95 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (credentials: LoginCredentials) => {
-    console.log('Login attempt:', credentials);
-    
-    // Determine the email to use for login
-    let email = credentials.email;
-    
-    // If using username or partnership number, we need to find the email
-    if (credentials.username || credentials.partnershipNumber) {
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('email')
-        .or(`username.eq.${credentials.username || credentials.partnershipNumber},phone.eq.${credentials.username || credentials.partnershipNumber}`)
-        .limit(1);
-      
-      if (error || !profiles || profiles.length === 0) {
-        throw new Error('Username atau nomor telepon tidak ditemukan');
-      }
-      
-      email = profiles[0].email;
-    }
-
-    if (!email) {
-      throw new Error('Email diperlukan untuk login');
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: credentials.password,
+    console.log('Login attempt started:', { 
+      role: credentials.role, 
+      email: credentials.email, 
+      username: credentials.username,
+      partnershipNumber: credentials.partnershipNumber 
     });
+    
+    try {
+      // Determine the email to use for login
+      let loginEmail = credentials.email;
+      
+      // If using username or partnership number, we need to find the email
+      if (!loginEmail && (credentials.username || credentials.partnershipNumber)) {
+        console.log('Looking up email for username/partnership:', credentials.username || credentials.partnershipNumber);
+        
+        const identifier = credentials.username || credentials.partnershipNumber;
+        
+        // First try to find by username
+        let { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('email, username, phone')
+          .or(`username.eq.${identifier},phone.eq.${identifier}`)
+          .limit(1);
+        
+        if (error) {
+          console.error('Error looking up profile:', error);
+          throw new Error('Terjadi kesalahan saat mencari akun');
+        }
+        
+        // If not found by username/phone, try partnership number for workshops
+        if (!profiles || profiles.length === 0) {
+          console.log('Profile not found by username/phone, trying partnership number...');
+          const { data: workshopProfiles, error: workshopError } = await supabase
+            .from('workshop_profiles')
+            .select('profiles!inner(email)')
+            .eq('partnership_number', identifier)
+            .limit(1);
+          
+          if (workshopError) {
+            console.error('Error looking up workshop profile:', workshopError);
+            throw new Error('Terjadi kesalahan saat mencari akun bengkel');
+          }
+          
+          if (workshopProfiles && workshopProfiles.length > 0) {
+            loginEmail = workshopProfiles[0].profiles?.email;
+          }
+        } else {
+          loginEmail = profiles[0].email;
+        }
+        
+        if (!loginEmail) {
+          console.log('No email found for identifier:', identifier);
+          throw new Error('Username, nomor telepon, atau nomor kemitraan tidak ditemukan');
+        }
+        
+        console.log('Found email for login:', loginEmail);
+      }
 
-    if (error) {
-      throw new Error(error.message);
-    }
+      if (!loginEmail) {
+        throw new Error('Email diperlukan untuk login');
+      }
 
-    if (data.user) {
-      toast.success('Login berhasil!');
+      console.log('Attempting Supabase auth with email:', loginEmail);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: credentials.password,
+      });
+
+      if (error) {
+        console.error('Supabase auth error:', error);
+        
+        // Provide more specific error messages
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Email/username atau password salah');
+        } else if (error.message.includes('Email not confirmed')) {
+          throw new Error('Email belum diverifikasi. Silakan cek email Anda');
+        } else {
+          throw new Error(error.message);
+        }
+      }
+
+      if (data.user) {
+        console.log('Login successful for user:', data.user.email);
+        toast.success('Login berhasil!');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
@@ -213,6 +292,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    console.log('Logging out...');
     await supabase.auth.signOut();
     setAuthState({
       user: null,

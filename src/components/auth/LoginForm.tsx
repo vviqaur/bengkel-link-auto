@@ -26,35 +26,48 @@ const LoginForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Password dan konfirmasi password tidak sama",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Remove password confirmation validation for login
+    // if (formData.password !== formData.confirmPassword) {
+    //   toast({
+    //     title: "Error",
+    //     description: "Password dan konfirmasi password tidak sama",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
     setIsLoading(true);
     try {
+      console.log('Form submission:', { role, formData });
+      
       const credentials = {
         role,
         password: formData.password,
         ...(role === 'workshop' 
           ? { partnershipNumber: formData.partnershipNumber }
-          : { email: formData.emailOrUsername, username: formData.emailOrUsername }
+          : { 
+              // Determine if input is email or username
+              ...(formData.emailOrUsername.includes('@') 
+                ? { email: formData.emailOrUsername }
+                : { username: formData.emailOrUsername }
+              )
+            }
         ),
       };
 
+      console.log('Login credentials prepared:', credentials);
       await login(credentials);
+      
       toast({
         title: "Berhasil masuk",
         description: "Selamat datang di BengkeLink!",
       });
     } catch (error) {
+      console.error('Login form error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat login';
       toast({
         title: "Error",
-        description: "Email/Username atau password salah",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -148,7 +161,8 @@ const LoginForm = () => {
             />
           </div>
 
-          <div className="space-y-2">
+          {/* Remove confirm password field for login form */}
+          {/* <div className="space-y-2">
             <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
             <Input
               id="confirmPassword"
@@ -158,7 +172,7 @@ const LoginForm = () => {
               onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
               required
             />
-          </div>
+          </div> */}
 
           {role !== 'workshop' && (
             <div className="text-center">

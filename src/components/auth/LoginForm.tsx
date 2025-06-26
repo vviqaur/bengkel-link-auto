@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Info, Mail } from 'lucide-react';
+import { AlertCircle, Info, Mail, Eye, EyeOff } from 'lucide-react';
 
 const LoginForm = () => {
   const [role, setRole] = useState<UserRole>('customer');
@@ -15,24 +16,35 @@ const LoginForm = () => {
     emailOrUsername: '',
     partnershipNumber: '',
     password: '',
-    confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showEmailVerificationInfo, setShowEmailVerificationInfo] = useState(false);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
 
-  const { login, resendVerification } = useAuth();
+  const { login, resendVerification, forgotPassword } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.password || 
+        (role !== 'workshop' && !formData.emailOrUsername) ||
+        (role === 'workshop' && !formData.partnershipNumber)) {
+      toast({
+        title: "Error",
+        description: "Silakan lengkapi semua field yang diperlukan",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     setShowEmailVerificationInfo(false);
     
     try {
-      console.log('Form submission:', { role, formData });
+      console.log('📝 Form submission:', { role, formData: { ...formData, password: '***' } });
       
       const credentials = {
         role,
@@ -40,7 +52,6 @@ const LoginForm = () => {
         ...(role === 'workshop' 
           ? { partnershipNumber: formData.partnershipNumber }
           : { 
-              // Determine if input is email or username
               ...(formData.emailOrUsername.includes('@') 
                 ? { email: formData.emailOrUsername }
                 : { username: formData.emailOrUsername }
@@ -49,14 +60,13 @@ const LoginForm = () => {
         ),
       };
 
-      console.log('Login credentials prepared:', credentials);
+      console.log('🔐 Login credentials prepared:', { ...credentials, password: '***' });
       await login(credentials);
       
-      // Success handling is now done in useAuth hook
-      console.log('Login successful, redirection will be handled automatically');
+      console.log('✅ Login successful - redirection will be handled automatically');
       
     } catch (error) {
-      console.error('Login form error:', error);
+      console.error('❌ Login form error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat login';
       
       // Show email verification info if login fails with verification-related errors
@@ -67,7 +77,7 @@ const LoginForm = () => {
       }
       
       toast({
-        title: "Error",
+        title: "Login Gagal",
         description: errorMessage,
         variant: "destructive",
       });
@@ -102,21 +112,26 @@ const LoginForm = () => {
   };
 
   const handleForgotPassword = async () => {
-    if (!formData.emailOrUsername) {
+    if (!formData.emailOrUsername || !formData.emailOrUsername.includes('@')) {
       toast({
         title: "Error",
-        description: "Masukkan email terlebih dahulu",
+        description: "Masukkan email yang valid terlebih dahulu",
         variant: "destructive",
       });
       return;
     }
 
-    // Simulate forgot password process
-    toast({
-      title: "Email terkirim",
-      description: "Link reset password telah dikirim ke email Anda",
-    });
-    setShowForgotPassword(false);
+    try {
+      await forgotPassword(formData.emailOrUsername);
+      setShowForgotPassword(false);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal mengirim email reset password';
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   const getRoleLabel = (role: UserRole) => {
@@ -170,9 +185,9 @@ const LoginForm = () => {
                 <SelectValue placeholder="Pilih peran" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="customer">Customer</SelectItem>
-                <SelectItem value="technician">Teknisi</SelectItem>
-                <SelectItem value="workshop">Mitra Bengkel</SelectItem>
+                <SelectItem value="customer">👤 Customer</SelectItem>
+                <SelectItem value="technician">🔧 Teknisi</SelectItem>
+                <SelectItem value="workshop">🏪 Mitra Bengkel</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -187,6 +202,7 @@ const LoginForm = () => {
                 value={formData.emailOrUsername}
                 onChange={(e) => setFormData(prev => ({ ...prev, emailOrUsername: e.target.value }))}
                 required
+                className="focus:ring-2 focus:ring-primary"
               />
               <p className="text-xs text-muted-foreground">
                 Gunakan email yang sama dengan saat pendaftaran
@@ -202,20 +218,37 @@ const LoginForm = () => {
                 value={formData.partnershipNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, partnershipNumber: e.target.value }))}
                 required
+                className="focus:ring-2 focus:ring-primary"
               />
             </div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Masukkan password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Masukkan password"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                required
+                className="focus:ring-2 focus:ring-primary pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
           </div>
 
           {role !== 'workshop' && (
@@ -236,7 +269,14 @@ const LoginForm = () => {
             className="w-full btn-primary"
             disabled={isLoading}
           >
-            {isLoading ? 'Memproses...' : `Masuk sebagai ${getRoleLabel(role)}`}
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Memproses...
+              </div>
+            ) : (
+              `Masuk sebagai ${getRoleLabel(role)}`
+            )}
           </Button>
         </form>
 
@@ -269,7 +309,7 @@ const LoginForm = () => {
               <ul className="text-sm text-amber-800 space-y-1">
                 <li>• <strong>Email belum diverifikasi?</strong> Cek inbox dan spam, atau klik "Kirim Ulang Verifikasi"</li>
                 <li>• <strong>Lupa password?</strong> Gunakan fitur "Lupa password?" di atas</li>
-                <li>• <strong>Akun tidak ditemukan?</strong> Pastikan Anda sudah mendaftar terlebih dahulu</li>
+                <li>• <strong>Akun tidak ditemukan?</strong> Pastikan Anda sudah mendaftar dengan role yang benar</li>
                 <li>• <strong>Masih bermasalah?</strong> Hubungi customer service kami</li>
               </ul>
             </div>

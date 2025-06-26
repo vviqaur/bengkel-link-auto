@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User, UserPlus } from 'lucide-react';
 import LoginForm from './auth/LoginForm';
 import SignupForm from './auth/SignupForm';
 
@@ -27,18 +27,27 @@ const AuthWrapper = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
-            className="w-full btn-primary text-lg py-6"
+            className="w-full btn-primary text-lg py-6 flex items-center gap-3"
             onClick={() => setMode('login')}
           >
+            <User className="w-5 h-5" />
             Masuk ke Akun
           </Button>
           <Button 
             variant="outline" 
-            className="w-full btn-secondary text-lg py-6"
+            className="w-full btn-secondary text-lg py-6 flex items-center gap-3"
             onClick={() => setMode('signup')}
           >
+            <UserPlus className="w-5 h-5" />
             Daftar Akun Baru
           </Button>
+          <div className="text-center pt-4">
+            <p className="text-xs text-muted-foreground">
+              Dengan menggunakan BengkeLink, Anda menyetujui{' '}
+              <span className="text-primary">Syarat & Ketentuan</span>{' '}
+              dan <span className="text-primary">Kebijakan Privasi</span> kami
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -47,11 +56,11 @@ const AuthWrapper = () => {
   const renderBackButton = () => (
     <Button
       variant="ghost"
-      className="mb-6 text-muted-foreground hover:text-foreground"
+      className="mb-6 text-muted-foreground hover:text-foreground flex items-center gap-2"
       onClick={() => setMode('selection')}
     >
-      <ArrowLeft className="w-4 h-4 mr-2" />
-      Kembali
+      <ArrowLeft className="w-4 h-4" />
+      Kembali ke Menu Utama
     </Button>
   );
 

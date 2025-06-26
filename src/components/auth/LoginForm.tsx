@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, Info, Mail } from 'lucide-react';
 
 const LoginForm = () => {
   const [role, setRole] = useState<UserRole>('customer');
@@ -21,14 +21,17 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showEmailVerificationInfo, setShowEmailVerificationInfo] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
 
-  const { login } = useAuth();
+  const { login, resendVerification } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     setIsLoading(true);
+    setShowEmailVerificationInfo(false);
+    
     try {
       console.log('Form submission:', { role, formData });
       
@@ -63,8 +66,10 @@ const LoginForm = () => {
       console.error('Login form error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat login';
       
-      // Show email verification info if login fails
-      if (errorMessage.includes('belum diverifikasi') || errorMessage.includes('Email not confirmed')) {
+      // Show email verification info if login fails with verification-related errors
+      if (errorMessage.includes('belum diverifikasi') || 
+          errorMessage.includes('Email not confirmed') ||
+          errorMessage.includes('Kirim Ulang Verifikasi')) {
         setShowEmailVerificationInfo(true);
       }
       
@@ -75,6 +80,31 @@ const LoginForm = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!formData.emailOrUsername || !formData.emailOrUsername.includes('@')) {
+      toast({
+        title: "Error",
+        description: "Masukkan email yang valid terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResendingVerification(true);
+    try {
+      await resendVerification(formData.emailOrUsername);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal mengirim ulang email verifikasi';
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsResendingVerification(false);
     }
   };
 
@@ -115,13 +145,24 @@ const LoginForm = () => {
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-blue-900 mb-1">Verifikasi Email Diperlukan</h3>
-                <p className="text-sm text-blue-800 mb-2">
-                  Akun Anda belum diverifikasi. Silakan cek email untuk link verifikasi.
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-2">Email Belum Diverifikasi</h3>
+                <p className="text-sm text-blue-800 mb-3">
+                  Akun Anda sudah terdaftar tetapi email belum diverifikasi. Silakan cek email untuk link verifikasi.
                 </p>
-                <p className="text-xs text-blue-700">
-                  Jika tidak menerima email, cek folder spam atau daftar ulang.
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={handleResendVerification}
+                    disabled={isResendingVerification}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Mail className="w-4 h-4 mr-1" />
+                    {isResendingVerification ? 'Mengirim...' : 'Kirim Ulang Verifikasi'}
+                  </Button>
+                </div>
+                <p className="text-xs text-blue-700 mt-2">
+                  Jika tidak menerima email, cek folder spam atau hubungi support.
                 </p>
               </div>
             </div>
@@ -231,11 +272,12 @@ const LoginForm = () => {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-amber-900 mb-1">Tips Login</h3>
+              <h3 className="font-semibold text-amber-900 mb-1">Petunjuk Login</h3>
               <ul className="text-sm text-amber-800 space-y-1">
-                <li>• Pastikan email sudah diverifikasi setelah mendaftar</li>
-                <li>• Gunakan email yang sama dengan saat pendaftaran</li>
-                <li>• Cek folder spam jika tidak menerima email verifikasi</li>
+                <li>• <strong>Email belum diverifikasi?</strong> Cek inbox dan spam, atau klik "Kirim Ulang Verifikasi"</li>
+                <li>• <strong>Lupa password?</strong> Gunakan fitur "Lupa password?" di atas</li>
+                <li>• <strong>Akun tidak ditemukan?</strong> Pastikan Anda sudah mendaftar terlebih dahulu</li>
+                <li>• <strong>Masih bermasalah?</strong> Hubungi customer service kami</li>
               </ul>
             </div>
           </div>

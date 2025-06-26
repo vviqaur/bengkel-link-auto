@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignupData } from '../types/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,7 @@ interface AuthContextType extends AuthState {
   verifyEmail: (token: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -208,9 +210,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Provide more specific error messages
         if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Email/username atau password salah, atau akun belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
+          throw new Error('Email/username atau password salah, atau akun belum diverifikasi. Silakan cek email Anda untuk link verifikasi atau klik "Kirim Ulang Verifikasi" di bawah.');
         } else if (error.message.includes('Email not confirmed')) {
-          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
+          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi atau klik "Kirim Ulang Verifikasi" di bawah.');
         } else if (error.message.includes('signup_disabled')) {
           throw new Error('Pendaftaran akun sedang dinonaktifkan. Silakan coba lagi nanti.');
         } else {
@@ -304,6 +306,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success('Pendaftaran berhasil! Silakan cek email untuk verifikasi sebelum login.');
   };
 
+  const resendVerification = async (email: string) => {
+    console.log('Resending verification email to:', email);
+    
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      }
+    });
+
+    if (error) {
+      console.error('Error resending verification:', error);
+      throw new Error('Gagal mengirim ulang email verifikasi: ' + error.message);
+    }
+
+    toast.success('Email verifikasi telah dikirim ulang! Silakan cek inbox dan folder spam Anda.');
+  };
+
   const logout = async () => {
     console.log('Logging out...');
     await supabase.auth.signOut();
@@ -344,6 +365,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifyEmail,
         forgotPassword,
         resetPassword,
+        resendVerification,
       }}
     >
       {children}

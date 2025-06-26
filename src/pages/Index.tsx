@@ -35,11 +35,13 @@ const Index = () => {
 
   // Show auth forms if not authenticated
   if (!isAuthenticated || !user) {
+    console.log('User not authenticated, showing auth wrapper');
     return <AuthWrapper />;
   }
 
   // Show appropriate dashboard based on user role
-  console.log('User authenticated, role:', user.role);
+  console.log('User authenticated with role:', user.role, 'Redirecting to dashboard...');
+  
   switch (user.role) {
     case 'customer':
       console.log('Redirecting to Customer Dashboard');
@@ -51,7 +53,7 @@ const Index = () => {
       console.log('Redirecting to Workshop Dashboard');
       return <WorkshopDashboard />;
     default:
-      console.log('Unknown role, showing auth wrapper');
+      console.log('Unknown role:', user.role, 'showing auth wrapper');
       return <AuthWrapper />;
   }
 };

@@ -35,9 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      if (session?.user) {
-        console.log('Found existing session for user:', session.user.email);
+      if (session?.user && session.user.email_confirmed_at) {
+        console.log('Found existing verified session for user:', session.user.email);
         await loadUserProfile(session.user.id);
+      } else if (session?.user && !session.user.email_confirmed_at) {
+        console.log('User session exists but email not verified yet');
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
       } else {
         console.log('No existing session found');
         setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -48,18 +51,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('Auth state changed:', event, 'User:', session?.user?.email, 'Email confirmed:', session?.user?.email_confirmed_at ? 'Yes' : 'No');
       
-      if (session?.user) {
-        console.log('User authenticated, loading profile...');
+      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+        console.log('User signed in with verified email, loading profile...');
         await loadUserProfile(session.user.id);
-      } else {
+        toast.success('Login berhasil! Selamat datang di BengkeLink!');
+      } else if (event === 'SIGNED_IN' && !session?.user?.email_confirmed_at) {
+        console.log('User signed in but email not verified');
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+        toast.error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
+      } else if (event === 'SIGNED_OUT') {
         console.log('User logged out, clearing state...');
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+        toast.success('Logout berhasil!');
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed for user:', session?.user?.email);
+        if (session?.user?.email_confirmed_at) {
+          await loadUserProfile(session.user.id);
+        }
       }
     });
 
@@ -79,21 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error loading profile:', error);
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
         return;
       }
 
       if (!profile) {
         console.error('No profile found for user:', userId);
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-        });
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
         return;
       }
 
@@ -115,23 +117,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         createdAt: new Date(profile.created_at),
       };
 
-      console.log('Setting authenticated user with role:', userRole);
-      setAuthState({
-        user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      
-      // Log successful authentication with role info
-      console.log(`User authenticated successfully as ${userRole}:`, user.name);
+      console.log(`Setting authenticated user with role: ${userRole}`);
+      setAuthState({ user, isAuthenticated: true, isLoading: false });
       
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-      });
+      setAuthState({ user: null, isAuthenticated: false, isLoading: false });
     }
   };
 
@@ -222,8 +213,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.user) {
         console.log('Login successful for user:', data.user.email);
+        console.log('Email confirmed:', data.user.email_confirmed_at ? 'Yes' : 'No');
+        
+        if (!data.user.email_confirmed_at) {
+          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi atau klik "Kirim Ulang Verifikasi" di bawah.');
+        }
+        
+        // Auth state will be updated automatically by onAuthStateChange
         console.log('Auth state will be updated automatically by onAuthStateChange');
-        toast.success('Login berhasil! Mengarahkan ke dashboard...');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -297,12 +294,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
+      console.error('Signup error:', error);
       if (error.message.includes('User already registered')) {
         throw new Error('Email sudah terdaftar. Silakan login atau gunakan email lain.');
       }
       throw new Error(error.message);
     }
 
+    console.log('Signup successful, verification email sent');
     toast.success('Pendaftaran berhasil! Silakan cek email untuk verifikasi sebelum login.');
   };
 
@@ -322,17 +321,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Gagal mengirim ulang email verifikasi: ' + error.message);
     }
 
+    console.log('Verification email resent successfully');
     toast.success('Email verifikasi telah dikirim ulang! Silakan cek inbox dan folder spam Anda.');
   };
 
   const logout = async () => {
     console.log('Logging out...');
-    await supabase.auth.signOut();
-    setAuthState({
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-    });
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Logout error:', error);
+      toast.error('Gagal logout: ' + error.message);
+    }
   };
 
   const verifyEmail = async (token: string) => {

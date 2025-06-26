@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,14 +52,8 @@ const LoginForm = () => {
       console.log('Login credentials prepared:', credentials);
       await login(credentials);
       
-      toast({
-        title: "Berhasil masuk",
-        description: "Selamat datang di BengkeLink!",
-      });
-      
-      // The redirection will be handled automatically by the Index component
-      // when the authentication state changes
-      console.log('Login successful, user will be redirected automatically');
+      // Success handling is now done in useAuth hook
+      console.log('Login successful, redirection will be handled automatically');
       
     } catch (error) {
       console.error('Login form error:', error);

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
+import { AlertCircle, Info } from 'lucide-react';
 
 const LoginForm = () => {
   const [role, setRole] = useState<UserRole>('customer');
@@ -19,6 +20,7 @@ const LoginForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showEmailVerificationInfo, setShowEmailVerificationInfo] = useState(false);
 
   const { login } = useAuth();
   const { toast } = useToast();
@@ -60,6 +62,12 @@ const LoginForm = () => {
     } catch (error) {
       console.error('Login form error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan saat login';
+      
+      // Show email verification info if login fails
+      if (errorMessage.includes('belum diverifikasi') || errorMessage.includes('Email not confirmed')) {
+        setShowEmailVerificationInfo(true);
+      }
+      
       toast({
         title: "Error",
         description: errorMessage,
@@ -103,6 +111,23 @@ const LoginForm = () => {
         <p className="text-muted-foreground">Pilih peran dan masuk ke akun Anda</p>
       </CardHeader>
       <CardContent>
+        {showEmailVerificationInfo && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-1">Verifikasi Email Diperlukan</h3>
+                <p className="text-sm text-blue-800 mb-2">
+                  Akun Anda belum diverifikasi. Silakan cek email untuk link verifikasi.
+                </p>
+                <p className="text-xs text-blue-700">
+                  Jika tidak menerima email, cek folder spam atau daftar ulang.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="role">Peran</Label>
@@ -129,6 +154,9 @@ const LoginForm = () => {
                 onChange={(e) => setFormData(prev => ({ ...prev, emailOrUsername: e.target.value }))}
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                Gunakan email yang sama dengan saat pendaftaran
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -198,6 +226,20 @@ const LoginForm = () => {
             </div>
           </div>
         )}
+
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-900 mb-1">Tips Login</h3>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• Pastikan email sudah diverifikasi setelah mendaftar</li>
+                <li>• Gunakan email yang sama dengan saat pendaftaran</li>
+                <li>• Cek folder spam jika tidak menerima email verifikasi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

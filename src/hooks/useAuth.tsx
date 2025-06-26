@@ -151,11 +151,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         const identifier = credentials.username || credentials.partnershipNumber;
         
-        // First try to find by username
+        // First try to find by username in profiles table
         let { data: profiles, error } = await supabase
           .from('profiles')
           .select('email, username, phone')
-          .or(`username.eq.${identifier},phone.eq.${identifier}`)
+          .or(`username.eq.${identifier},phone.eq.${identifier},email.eq.${identifier}`)
           .limit(1);
         
         if (error) {
@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // If not found by username/phone, try partnership number for workshops
         if (!profiles || profiles.length === 0) {
-          console.log('Profile not found by username/phone, trying partnership number...');
+          console.log('Profile not found by username/phone/email, trying partnership number...');
           const { data: workshopProfiles, error: workshopError } = await supabase
             .from('workshop_profiles')
             .select('profiles!inner(email)')
@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (!loginEmail) {
           console.log('No email found for identifier:', identifier);
-          throw new Error('Username, nomor telepon, atau nomor kemitraan tidak ditemukan');
+          throw new Error('Email, username, atau nomor kemitraan tidak ditemukan. Pastikan Anda sudah mendaftar dan mengonfirmasi email Anda.');
         }
         
         console.log('Found email for login:', loginEmail);
@@ -208,11 +208,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Provide more specific error messages
         if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Email/username atau password salah');
+          throw new Error('Email/username atau password salah, atau akun belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
         } else if (error.message.includes('Email not confirmed')) {
-          throw new Error('Email belum diverifikasi. Silakan cek email Anda');
+          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
+        } else if (error.message.includes('signup_disabled')) {
+          throw new Error('Pendaftaran akun sedang dinonaktifkan. Silakan coba lagi nanti.');
         } else {
-          throw new Error(error.message);
+          throw new Error(`Login gagal: ${error.message}`);
         }
       }
 
@@ -293,10 +295,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
+      if (error.message.includes('User already registered')) {
+        throw new Error('Email sudah terdaftar. Silakan login atau gunakan email lain.');
+      }
       throw new Error(error.message);
     }
 
-    toast.success('Pendaftaran berhasil! Silakan cek email untuk verifikasi.');
+    toast.success('Pendaftaran berhasil! Silakan cek email untuk verifikasi sebelum login.');
   };
 
   const logout = async () => {

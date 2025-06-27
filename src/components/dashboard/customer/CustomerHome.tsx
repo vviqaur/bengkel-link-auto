@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MapPin, Calendar, Clock, Star, Plus, Phone, MessageCircle } from 'lucide-react';
+import { MapPin, Calendar, Clock, Star, Plus, Phone, MessageCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ServiceFlow from '@/components/services/ServiceFlow';
@@ -14,6 +14,25 @@ const CustomerHome = () => {
   const [selectedWorkshop, setSelectedWorkshop] = useState<any>(null);
   const [isCalling, setIsCalling] = useState(false);
 
+  // Mock data for reminders/bookings
+  const [reminders] = useState([
+    {
+      id: '1',
+      serviceName: 'Ganti Oli + Filter',
+      date: '2024-01-20',
+      status: 'Menunggu Konfirmasi',
+      workshop: 'Bengkel Maju Jaya'
+    },
+    {
+      id: '2',
+      serviceName: 'Service AC',
+      date: '2024-01-22',
+      status: 'Sedang Diproses',
+      workshop: 'Auto Service Center'
+    }
+  ]);
+
+  // Active services (current ongoing services)
   const [activeServices] = useState([
     {
       id: '1',
@@ -28,6 +47,7 @@ const CustomerHome = () => {
     }
   ]);
 
+  // Nearby workshops
   const [nearbyWorkshops] = useState([
     {
       id: '1',
@@ -65,6 +85,7 @@ const CustomerHome = () => {
     }
   ]);
 
+  // Promo data
   const [promos] = useState([
     {
       id: 'promo-1',
@@ -83,6 +104,24 @@ const CustomerHome = () => {
       title: 'Promo Undang Teman',
       image: '/lovable-uploads/promo3.png',
       description: 'Bonus Rp50.000 per undangan'
+    },
+    {
+      id: 'promo-4',
+      title: 'Promo Pengguna Setia',
+      image: '/lovable-uploads/promo4.png',
+      description: 'Diskon 30% untuk pelanggan setia'
+    },
+    {
+      id: 'promo-5',
+      title: 'Promo Hari Pancasila',
+      image: '/lovable-uploads/promo5.png',
+      description: 'Diskon 25% khusus 1 Juni'
+    },
+    {
+      id: 'promo-6',
+      title: 'Promo Tanggal Kembar 6.6',
+      image: '/lovable-uploads/promo6.png',
+      description: 'Diskon 66% spesial 6 Juni'
     }
   ]);
 
@@ -113,6 +152,7 @@ const CustomerHome = () => {
     setCurrentView('workshop-detail');
   };
 
+  // Handle different views
   if (currentView === 'call-technician') {
     return (
       <ServiceFlow 
@@ -193,7 +233,7 @@ const CustomerHome = () => {
 
   return (
     <div className="p-4 space-y-6">
-      {/* Quick Actions */}
+      {/* Quick Actions - Main Service Options */}
       <div className="grid grid-cols-2 gap-4">
         <Button 
           className="h-20 flex flex-col gap-2 btn-primary"
@@ -267,7 +307,45 @@ const CustomerHome = () => {
         </div>
       )}
 
-      {/* Promos */}
+      {/* Reminder Section */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Reminder</h2>
+        {reminders.length > 0 ? (
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {reminders.map((reminder) => (
+              <Card key={reminder.id} className="card-interactive">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{reminder.serviceName}</p>
+                      <p className="text-sm text-muted-foreground">{reminder.date}</p>
+                      <p className="text-xs text-muted-foreground">{reminder.workshop}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        reminder.status === 'Menunggu Konfirmasi' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {reminder.status}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground italic text-sm">
+              Belum ada aktivitas booking service.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Promos Section */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Promo Spesial</h2>
         <div className="flex gap-4 overflow-x-auto pb-2">

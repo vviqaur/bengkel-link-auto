@@ -1,193 +1,180 @@
 
 import { useState } from 'react';
-import { Calendar, MapPin, Star, Clock } from 'lucide-react';
+import { Calendar, Filter, Clock, Star, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const CustomerActivity = () => {
+  const [filter, setFilter] = useState('all');
+  
   const [activities] = useState([
     {
       id: '1',
-      type: 'Servis Berkala',
-      workshop: 'Bengkel Maju Jaya',
+      serviceName: 'Perbaikan AC',
+      date: '2024-01-15',
+      time: '14:30',
+      status: 'Selesai',
       technician: 'Ahmad Supardi',
-      date: new Date('2024-01-15'),
-      status: 'completed',
-      rating: 5,
-      cost: 150000,
-      location: 'Jl. Sudirman No. 123'
+      workshop: 'Bengkel Maju Jaya',
+      cost: 'Rp 350.000',
+      rating: 4.8
     },
     {
       id: '2',
-      type: 'Ganti Oli',
-      workshop: 'Auto Service Center',
+      serviceName: 'Ganti Oli + Filter',
+      date: '2024-01-10',
+      time: '09:00',
+      status: 'Selesai',
       technician: 'Budi Santoso',
-      date: new Date('2024-01-10'),
-      status: 'completed',
-      rating: 4,
-      cost: 75000,
-      location: 'Jl. Gatot Subroto No. 45'
+      workshop: 'Auto Service Center',
+      cost: 'Rp 250.000',
+      rating: 4.5
     },
     {
       id: '3',
-      type: 'Tune Up',
+      serviceName: 'Tune Up',
+      date: '2024-01-08',
+      time: '16:00',
+      status: 'Sedang Berlangsung',
+      technician: 'Citra Dewi',
       workshop: 'Bengkel Sejahtera',
-      technician: 'Candra Wijaya',
-      date: new Date('2024-01-08'),
-      status: 'cancelled',
-      cost: 0,
-      location: 'Jl. Thamrin No. 67'
+      cost: 'Rp 450.000',
+      rating: null
+    },
+    {
+      id: '4',
+      serviceName: 'Service Rem',
+      date: '2024-01-05',
+      time: '11:30',
+      status: 'Dibatalkan',
+      technician: 'Dedi Kurniawan',
+      workshop: 'Motor Care',
+      cost: 'Rp 0',
+      rating: null
     }
   ]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Selesai</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive">Dibatalkan</Badge>;
-      case 'pending':
-        return <Badge variant="secondary">Menunggu</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+      case 'Selesai': return 'bg-green-100 text-green-800';
+      case 'Sedang Berlangsung': return 'bg-blue-100 text-blue-800';
+      case 'Dibatalkan': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  const filteredActivities = activities.filter(activity => {
+    if (filter === 'all') return true;
+    if (filter === '7days') {
+      const activityDate = new Date(activity.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return activityDate >= weekAgo;
+    }
+    if (filter === '30days') {
+      const activityDate = new Date(activity.date);
+      const monthAgo = new Date();
+      monthAgo.setDate(monthAgo.getDate() - 30);
+      return activityDate >= monthAgo;
+    }
+    return true;
+  });
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(date);
+  const handleViewDetail = (activityId: string) => {
+    console.log('Viewing detail for activity:', activityId);
+    // Will implement detail view later
   };
-
-  const completedActivities = activities.filter(a => a.status === 'completed');
-  const cancelledActivities = activities.filter(a => a.status === 'cancelled');
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-6">Riwayat Aktivitas</h1>
+    <div className="p-4 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold">Riwayat Aktivitas</h1>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-48">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Waktu</SelectItem>
+            <SelectItem value="7days">7 Hari Terakhir</SelectItem>
+            <SelectItem value="30days">30 Hari Terakhir</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="all">Semua</TabsTrigger>
-          <TabsTrigger value="completed">Selesai</TabsTrigger>
-          <TabsTrigger value="cancelled">Dibatalkan</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="space-y-4">
-          {activities.map((activity) => (
-            <Card key={activity.id}>
+      <div className="space-y-4">
+        {filteredActivities.length > 0 ? (
+          filteredActivities.map((activity) => (
+            <Card key={activity.id} className="card-interactive">
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-base">{activity.type}</CardTitle>
-                    <CardDescription>{activity.workshop}</CardDescription>
+                    <CardTitle className="text-base">{activity.serviceName}</CardTitle>
+                    <CardDescription className="flex items-center gap-4 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {activity.date}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {activity.time}
+                      </span>
+                    </CardDescription>
                   </div>
-                  {getStatusBadge(activity.status)}
+                  <Badge className={getStatusColor(activity.status)}>
+                    {activity.status}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(activity.date)}</span>
+                  <div>
+                    <p className="font-medium">Teknisi:</p>
+                    <p className="text-muted-foreground">{activity.technician}</p>
                   </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{activity.location}</span>
+                  <div>
+                    <p className="font-medium">Bengkel:</p>
+                    <p className="text-muted-foreground">{activity.workshop}</p>
                   </div>
-                </div>
-                
-                {activity.status === 'completed' && (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm">Rating: {activity.rating}/5</span>
+                  <div>
+                    <p className="font-medium">Biaya:</p>
+                    <p className="text-muted-foreground font-semibold">{activity.cost}</p>
+                  </div>
+                  {activity.rating && (
+                    <div>
+                      <p className="font-medium">Rating:</p>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-muted-foreground">{activity.rating}</span>
+                      </div>
                     </div>
-                    <div className="text-lg font-semibold text-primary">
-                      {formatCurrency(activity.cost)}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
+                  )}
+                </div>
 
-        <TabsContent value="completed" className="space-y-4">
-          {completedActivities.map((activity) => (
-            <Card key={activity.id}>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-base">{activity.type}</CardTitle>
-                    <CardDescription>{activity.workshop}</CardDescription>
-                  </div>
-                  {getStatusBadge(activity.status)}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(activity.date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{activity.location}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm">Rating: {activity.rating}/5</span>
-                </div>
-                <div className="text-lg font-semibold text-primary">
-                  {formatCurrency(activity.cost)}
-                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleViewDetail(activity.id)}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Lihat Detail
+                </Button>
               </CardContent>
             </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="cancelled" className="space-y-4">
-          {cancelledActivities.map((activity) => (
-            <Card key={activity.id}>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-base">{activity.type}</CardTitle>
-                    <CardDescription>{activity.workshop}</CardDescription>
-                  </div>
-                  {getStatusBadge(activity.status)}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(activity.date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{activity.location}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-      </Tabs>
+          ))
+        ) : (
+          <div className="text-center py-12">
+            <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Belum ada riwayat aktivitas</h3>
+            <p className="text-muted-foreground italic text-sm">
+              Riwayat service Anda akan muncul di sini
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,273 +1,164 @@
 
 import { useState } from 'react';
-import { User, Phone, Mail, MapPin, Car, Settings, LogOut, Edit } from 'lucide-react';
+import { ArrowLeft, Camera, User, Mail, Phone, MapPin, LogOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { Badge } from '@/components/ui/badge';
-import ProfileEdit from './ProfileEdit';
-import VehicleManagement from './VehicleManagement';
+import { toast } from 'sonner';
 
 const CustomerProfile = () => {
   const { user, logout } = useAuth();
-  const [currentView, setCurrentView] = useState<'profile' | 'edit' | 'vehicles' | 'settings'>('profile');
-  
-  const [vehicles] = useState([
-    {
-      id: '1',
-      brand: 'Toyota',
-      model: 'Avanza',
-      year: 2020,
-      plateNumber: 'B 1234 ABC',
-      color: 'Putih',
-      isDefault: true
-    },
-    {
-      id: '2',
-      brand: 'Honda',
-      model: 'Civic',
-      year: 2019,
-      plateNumber: 'B 5678 DEF',
-      color: 'Hitam',
-      isDefault: false
-    }
-  ]);
-
-  const [stats] = useState({
-    totalServices: 15,
-    completedServices: 13,
-    averageRating: 4.8,
-    memberSince: '2023'
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    username: user?.username || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    address: user?.address || ''
   });
 
-  const handleLogout = () => {
-    logout();
+  const handleSave = () => {
+    // Simulate saving profile
+    toast.success('Profil berhasil diperbarui!');
+    setIsEditing(false);
   };
 
-  const handleProfileSave = (data: any) => {
-    // Here you would typically save to backend
-    console.log('Saving profile data:', data);
-    setCurrentView('profile');
+  const handlePhotoUpload = () => {
+    // Simulate photo upload
+    toast.success('Foto profil berhasil diperbarui!');
   };
 
-  if (currentView === 'edit') {
-    return (
-      <ProfileEdit
-        onBack={() => setCurrentView('profile')}
-        onSave={handleProfileSave}
-      />
-    );
-  }
-
-  if (currentView === 'vehicles') {
-    return (
-      <VehicleManagement
-        onBack={() => setCurrentView('profile')}
-      />
-    );
-  }
-
-  if (currentView === 'settings') {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="p-4">
-          <div className="flex items-center gap-3 mb-6">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentView('profile')}>
-              <Edit className="w-5 h-5" />
-            </Button>
-            <h1 className="text-xl font-bold">Pengaturan Akun</h1>
-          </div>
-
-          <div className="space-y-4">
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-4">Pengaturan Umum</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span>Notifikasi Push</span>
-                    <Button variant="outline" size="sm">Atur</Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Bahasa</span>
-                    <Button variant="outline" size="sm">Indonesia</Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Tema</span>
-                    <Button variant="outline" size="sm">Terang</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-4">Keamanan</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span>Ubah Password</span>
-                    <Button variant="outline" size="sm">Ubah</Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Verifikasi 2 Langkah</span>
-                    <Button variant="outline" size="sm">Aktifkan</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-4">Privasi</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span>Data Lokasi</span>
-                    <Button variant="outline" size="sm">Kelola</Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Riwayat Aktivitas</span>
-                    <Button variant="outline" size="sm">Hapus</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleDeleteAccount = () => {
+    if (confirm('Apakah Anda yakin ingin menghapus akun? Tindakan ini tidak dapat dibatalkan.')) {
+      toast.error('Fitur hapus akun sedang dalam pengembangan');
+    }
+  };
 
   return (
     <div className="p-4 space-y-6">
-      {/* Profile Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={user?.profilePhoto} />
-              <AvatarFallback className="text-lg">
-                {user?.name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <CardTitle className="text-xl">{user?.name}</CardTitle>
-              <CardDescription>Member sejak {stats.memberSince}</CardDescription>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="secondary">
-                  ⭐ {stats.averageRating}
-                </Badge>
-                <Badge variant="outline">
-                  {stats.completedServices} servis selesai
-                </Badge>
-              </div>
-            </div>
-            <Button variant="outline" size="icon" onClick={() => setCurrentView('edit')}>
-              <Edit className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+      <div className="flex items-center gap-3 mb-6">
+        <h1 className="text-xl font-bold">Profil Saya</h1>
+      </div>
 
-      {/* Contact Information */}
+      {/* Profile Photo */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Informasi Kontak</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Phone className="w-5 h-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">{user?.phone}</p>
-              <p className="text-sm text-muted-foreground">Nomor Telepon</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Mail className="w-5 h-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">{user?.email}</p>
-              <p className="text-sm text-muted-foreground">Email</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">{user?.address || 'Alamat belum diatur'}</p>
-              <p className="text-sm text-muted-foreground">Alamat</p>
-            </div>
-          </div>
+        <CardContent className="p-6 text-center">
+          <Avatar className="w-24 h-24 mx-auto mb-4">
+            <AvatarImage src={user?.profilePhoto} />
+            <AvatarFallback className="text-2xl">
+              {user?.name?.charAt(0) || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <Button variant="outline" onClick={handlePhotoUpload}>
+            <Camera className="w-4 h-4 mr-2" />
+            Ubah Foto Profil
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Vehicles */}
+      {/* Profile Information */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Kendaraan Saya</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setCurrentView('vehicles')}>
-              <Car className="w-4 h-4 mr-2" />
-              Tambah Kendaraan
+            <CardTitle>Informasi Profil</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              {isEditing ? 'Batal' : 'Edit'}
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {vehicles.map((vehicle) => (
-            <div key={vehicle.id} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <Car className="w-8 h-8 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">
-                    {vehicle.brand} {vehicle.model} ({vehicle.year})
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {vehicle.plateNumber} • {vehicle.color}
-                  </p>
-                </div>
-              </div>
-              {vehicle.isDefault && (
-                <Badge variant="secondary">Default</Badge>
-              )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Statistik</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-2xl font-bold text-primary">{stats.totalServices}</p>
-              <p className="text-sm text-muted-foreground">Total Servis</p>
-            </div>
-            <div className="text-center p-4 bg-muted rounded-lg">
-              <p className="text-2xl font-bold text-green-600">{stats.completedServices}</p>
-              <p className="text-sm text-muted-foreground">Selesai</p>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nama Lengkap</Label>
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                disabled={!isEditing}
+              />
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <Input
+                id="username"
+                value={formData.username}
+                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                disabled={!isEditing}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                disabled={!isEditing}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Nomor Telepon</Label>
+            <div className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                disabled={!isEditing}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Alamat Utama</Label>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                disabled={!isEditing}
+                placeholder="Masukkan alamat lengkap"
+              />
+            </div>
+          </div>
+
+          {isEditing && (
+            <Button onClick={handleSave} className="w-full">
+              Simpan Perubahan
+            </Button>
+          )}
         </CardContent>
       </Card>
 
-      {/* Settings & Actions */}
+      {/* Action Buttons */}
       <div className="space-y-3">
-        <Button 
-          variant="outline" 
-          className="w-full justify-start"
-          onClick={() => setCurrentView('settings')}
-        >
-          <Settings className="w-4 h-4 mr-3" />
-          Pengaturan Akun
+        <Button variant="destructive" onClick={logout} className="w-full">
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
         </Button>
         
-        <Button 
-          variant="destructive" 
-          className="w-full justify-start"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-4 h-4 mr-3" />
-          Keluar
+        <Button variant="outline" onClick={handleDeleteAccount} className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
+          <Trash2 className="w-4 h-4 mr-2" />
+          Hapus Akun
         </Button>
       </div>
     </div>

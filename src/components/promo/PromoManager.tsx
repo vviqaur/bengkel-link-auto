@@ -25,7 +25,7 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
     {
       id: 'promo-1',
       title: 'Promo Pengguna Baru',
-      image: '/lovable-uploads/promo1.png',
+      image: '/lovable-uploads/5be689c2-1cf2-47da-8b52-5d9b743a0889.png',
       description: 'Nikmati diskon 50% untuk pemesanan layanan pertama Anda.',
       terms: ['Hanya untuk pengguna baru yang belum pernah memesan layanan.'],
       expiryDate: '31-12-2025',
@@ -35,7 +35,7 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
     {
       id: 'promo-2',
       title: 'Promo Awal Bulan',
-      image: '/lovable-uploads/promo2.png',
+      image: '/lovable-uploads/418fe508-530e-432b-a8bb-6162aaf1d48d.png',
       description: 'Dapatkan diskon 20% untuk setiap pemesanan di awal bulan.',
       terms: ['Berlaku untuk semua pengguna.'],
       expiryDate: '30-06-2025',
@@ -45,7 +45,7 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
     {
       id: 'promo-3',
       title: 'Promo Undang Teman',
-      image: '/lovable-uploads/promo3.png',
+      image: '/lovable-uploads/a3794a57-2e99-4d17-8d22-e436667d5c3f.png',
       description: 'Dapatkan bonus Rp50.000 untuk setiap teman yang diundang dan memesan layanan.',
       terms: ['Minimal 1 teman diundang yang berhasil memesan.'],
       expiryDate: '31-12-2025',
@@ -55,7 +55,7 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
     {
       id: 'promo-4',
       title: 'Promo Pengguna Setia',
-      image: '/lovable-uploads/promo4.png',
+      image: '/lovable-uploads/70998ccd-804d-4d11-b274-b8839272acdc.png',
       description: 'Diskon 30% untuk pengguna dengan 5 atau lebih pemesanan.',
       terms: ['Minimal 5 pemesanan layanan.'],
       expiryDate: '31-12-2025',
@@ -65,7 +65,7 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
     {
       id: 'promo-5',
       title: 'Promo Hari Pancasila',
-      image: '/lovable-uploads/promo5.png',
+      image: '/lovable-uploads/0aa878a7-a4e2-414d-ae75-d51a7b812286.png',
       description: 'Rayakan Hari Pancasila dengan diskon 25% untuk semua layanan.',
       terms: ['Berlaku untuk semua pengguna, hanya pada 1 Juni 2025.'],
       expiryDate: '01-06-2025',
@@ -75,7 +75,7 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
     {
       id: 'promo-6',
       title: 'Promo Tanggal Kembar 6.6',
-      image: '/lovable-uploads/promo6.png',
+      image: '/lovable-uploads/cd6d6b9e-3568-4c3b-8d70-98fd97511fca.png',
       description: 'Diskon 66% untuk pemesanan pada tanggal 6 Juni 2025.',
       terms: ['Berlaku untuk semua pengguna, hanya pada 6 Juni 2025.'],
       expiryDate: '06-06-2025',
@@ -133,11 +133,12 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
 
         <main className="p-4 space-y-6">
           {/* Promo Image */}
-          <div className="w-full h-48 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <Gift className="w-16 h-16 text-primary mx-auto mb-2" />
-              <h2 className="text-lg font-semibold text-primary">{selectedPromo.title}</h2>
-            </div>
+          <div className="w-full h-48 rounded-lg overflow-hidden">
+            <img 
+              src={selectedPromo.image} 
+              alt={selectedPromo.title}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           {/* Description */}
@@ -240,11 +241,12 @@ const PromoManager = ({ onBack, initialPromoId }: PromoManagerProps) => {
                   )}
                 </div>
                 
-                <div className="h-32 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg mb-3 flex items-center justify-center">
-                  <div className="text-center">
-                    <Gift className="w-8 h-8 text-primary mx-auto mb-1" />
-                    <p className="text-xs text-primary font-medium">{promo.title}</p>
-                  </div>
+                <div className="h-32 rounded-lg mb-3 overflow-hidden">
+                  <img 
+                    src={promo.image} 
+                    alt={promo.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-3 line-clamp-2">

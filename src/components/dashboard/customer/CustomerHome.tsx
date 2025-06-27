@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MapPin, Calendar, Clock, Star, Plus, Phone, MessageCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,42 +84,42 @@ const CustomerHome = () => {
     }
   ]);
 
-  // Promo data
+  // Promo data - updated with new images
   const [promos] = useState([
     {
       id: 'promo-1',
       title: 'Promo Pengguna Baru',
-      image: '/lovable-uploads/promo1.png',
+      image: '/lovable-uploads/5be689c2-1cf2-47da-8b52-5d9b743a0889.png',
       description: 'Diskon 50% untuk pengguna baru'
     },
     {
       id: 'promo-2',
       title: 'Promo Awal Bulan',
-      image: '/lovable-uploads/promo2.png',
+      image: '/lovable-uploads/418fe508-530e-432b-a8bb-6162aaf1d48d.png',
       description: 'Diskon 20% setiap awal bulan'
     },
     {
       id: 'promo-3',
       title: 'Promo Undang Teman',
-      image: '/lovable-uploads/promo3.png',
+      image: '/lovable-uploads/a3794a57-2e99-4d17-8d22-e436667d5c3f.png',
       description: 'Bonus Rp50.000 per undangan'
     },
     {
       id: 'promo-4',
       title: 'Promo Pengguna Setia',
-      image: '/lovable-uploads/promo4.png',
+      image: '/lovable-uploads/70998ccd-804d-4d11-b274-b8839272acdc.png',
       description: 'Diskon 30% untuk pelanggan setia'
     },
     {
       id: 'promo-5',
       title: 'Promo Hari Pancasila',
-      image: '/lovable-uploads/promo5.png',
+      image: '/lovable-uploads/0aa878a7-a4e2-414d-ae75-d51a7b812286.png',
       description: 'Diskon 25% khusus 1 Juni'
     },
     {
       id: 'promo-6',
       title: 'Promo Tanggal Kembar 6.6',
-      image: '/lovable-uploads/promo6.png',
+      image: '/lovable-uploads/cd6d6b9e-3568-4c3b-8d70-98fd97511fca.png',
       description: 'Diskon 66% spesial 6 Juni'
     }
   ]);
@@ -352,15 +351,20 @@ const CustomerHome = () => {
           {promos.map((promo) => (
             <Card key={promo.id} className="min-w-[300px] card-interactive">
               <CardContent className="p-4">
-                <div className="h-32 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg mb-3 flex items-center justify-center">
-                  <div className="text-center">
-                    <h3 className="font-semibold text-primary">{promo.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">{promo.description}</p>
-                  </div>
+                <div className="h-32 rounded-lg mb-3 overflow-hidden">
+                  <img 
+                    src={promo.image} 
+                    alt={promo.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-sm">{promo.title}</h3>
+                  <p className="text-xs text-muted-foreground">{promo.description}</p>
                 </div>
                 <Button 
                   size="sm" 
-                  className="w-full"
+                  className="w-full mt-3"
                   onClick={() => handlePromoDetail(promo.id)}
                 >
                   Lihat Detail

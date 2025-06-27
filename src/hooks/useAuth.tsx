@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, SignupData } from '../types/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -153,48 +152,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         const identifier = credentials.username || credentials.partnershipNumber;
         
-        // Try to find by username/phone/email in profiles table
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('email, username, phone, role')
-          .or(`username.eq.${identifier},phone.eq.${identifier},email.eq.${identifier}`)
-          .eq('role', credentials.role)
-          .limit(1);
-        
-        if (error) {
-          console.error('❌ Error looking up profile:', error);
-          throw new Error('Terjadi kesalahan saat mencari akun');
+        // For workshop role, check partnership number first
+        if (credentials.role === 'workshop' && credentials.partnershipNumber) {
+          console.log('🏪 Looking up workshop by partnership number...');
+          const { data: workshopProfiles, error: workshopError } = await supabase
+            .from('workshop_profiles')
+            .select('profiles!inner(email, role)')
+            .eq('partnership_number', identifier)
+            .limit(1);
+          
+          if (workshopError) {
+            console.error('❌ Error looking up workshop profile:', workshopError);
+          } else if (workshopProfiles && workshopProfiles.length > 0) {
+            loginEmail = workshopProfiles[0].profiles?.email;
+            console.log('✅ Found workshop email:', loginEmail);
+          }
         }
         
-        // For workshop role, also try partnership number
-        if (!profiles || profiles.length === 0) {
-          if (credentials.role === 'workshop') {
-            console.log('🏪 Trying workshop partnership number lookup...');
-            const { data: workshopProfiles, error: workshopError } = await supabase
-              .from('workshop_profiles')
-              .select('profiles!inner(email, role)')
-              .eq('partnership_number', identifier)
-              .limit(1);
-            
-            if (workshopError) {
-              console.error('❌ Error looking up workshop profile:', workshopError);
-              throw new Error('Terjadi kesalahan saat mencari akun bengkel');
-            }
-            
-            if (workshopProfiles && workshopProfiles.length > 0) {
-              loginEmail = workshopProfiles[0].profiles?.email;
-            }
+        // If not found in workshop_profiles or not a workshop, try profiles table
+        if (!loginEmail) {
+          console.log('🔍 Looking up in profiles table...');
+          const { data: profiles, error } = await supabase
+            .from('profiles')
+            .select('email, username, phone, role')
+            .or(`username.eq.${identifier},phone.eq.${identifier},email.eq.${identifier}`)
+            .eq('role', credentials.role)
+            .limit(1);
+          
+          if (error) {
+            console.error('❌ Error looking up profile:', error);
+          } else if (profiles && profiles.length > 0) {
+            loginEmail = profiles[0].email;
+            console.log('✅ Found profile email:', loginEmail);
           }
-        } else {
-          loginEmail = profiles[0].email;
         }
         
         if (!loginEmail) {
           console.log('❌ No email found for identifier:', identifier);
-          throw new Error(`Email, username, atau nomor kemitraan tidak ditemukan untuk ${credentials.role}. Pastikan Anda sudah mendaftar dengan role yang benar.`);
+          throw new Error(`Akun tidak ditemukan untuk ${credentials.role}. Pastikan Anda sudah mendaftar dengan role yang benar atau gunakan email untuk login.`);
         }
-        
-        console.log('✅ Found email for login:', loginEmail);
       }
 
       if (!loginEmail) {
@@ -212,9 +208,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('❌ Supabase auth error:', error);
         
         if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Email/username atau password salah, atau akun belum diverifikasi. Silakan cek email Anda untuk link verifikasi atau klik "Kirim Ulang Verifikasi".');
+          throw new Error('Email/username atau password salah. Silakan periksa kembali atau cek email untuk verifikasi.');
         } else if (error.message.includes('Email not confirmed')) {
-          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi atau klik "Kirim Ulang Verifikasi".');
+          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
         } else if (error.message.includes('signup_disabled')) {
           throw new Error('Pendaftaran akun sedang dinonaktifkan. Silakan coba lagi nanti.');
         } else {
@@ -227,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('📧 Email confirmed:', data.user.email_confirmed_at ? 'Yes' : 'No');
         
         if (!data.user.email_confirmed_at) {
-          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi atau klik "Kirim Ulang Verifikasi".');
+          throw new Error('Email belum diverifikasi. Silakan cek email Anda untuk link verifikasi.');
         }
         
         // Profile will be loaded automatically by onAuthStateChange

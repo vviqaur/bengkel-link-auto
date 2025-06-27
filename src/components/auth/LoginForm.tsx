@@ -72,7 +72,7 @@ const LoginForm = () => {
       // Show email verification info if login fails with verification-related errors
       if (errorMessage.includes('belum diverifikasi') || 
           errorMessage.includes('Email not confirmed') ||
-          errorMessage.includes('Kirim Ulang Verifikasi')) {
+          errorMessage.includes('verifikasi')) {
         setShowEmailVerificationInfo(true);
       }
       
@@ -305,12 +305,12 @@ const LoginForm = () => {
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-amber-900 mb-1">Petunjuk Login</h3>
+              <h3 className="font-semibold text-amber-900 mb-1">Tips Login</h3>
               <ul className="text-sm text-amber-800 space-y-1">
-                <li>• <strong>Email belum diverifikasi?</strong> Cek inbox dan spam, atau klik "Kirim Ulang Verifikasi"</li>
-                <li>• <strong>Lupa password?</strong> Gunakan fitur "Lupa password?" di atas</li>
-                <li>• <strong>Akun tidak ditemukan?</strong> Pastikan Anda sudah mendaftar dengan role yang benar</li>
-                <li>• <strong>Masih bermasalah?</strong> Hubungi customer service kami</li>
+                <li>• Gunakan <strong>email</strong> untuk login yang lebih mudah</li>
+                <li>• Pastikan email sudah <strong>diverifikasi</strong> setelah pendaftaran</li>
+                <li>• Cek folder <strong>spam</strong> jika tidak menerima email verifikasi</li>
+                <li>• Hubungi support jika masih mengalami kendala</li>
               </ul>
             </div>
           </div>

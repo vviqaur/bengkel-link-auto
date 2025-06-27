@@ -169,7 +169,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
         
-        // If not found in workshop_profiles or not a workshop, try profiles table
+        // For technician role, check partnership number in technician_profiles
+        if (!loginEmail && credentials.role === 'technician' && credentials.partnershipNumber) {
+          console.log('🔧 Looking up technician by partnership number...');
+          const { data: techProfiles, error: techError } = await supabase
+            .from('technician_profiles')
+            .select('profiles!inner(email, role)')
+            .eq('partnership_number', identifier)
+            .limit(1);
+          
+          if (techError) {
+            console.error('❌ Error looking up technician profile:', techError);
+          } else if (techProfiles && techProfiles.length > 0) {
+            loginEmail = techProfiles[0].profiles?.email;
+            console.log('✅ Found technician email:', loginEmail);
+          }
+        }
+        
+        // If not found in role-specific tables, try profiles table
         if (!loginEmail) {
           console.log('🔍 Looking up in profiles table...');
           const { data: profiles, error } = await supabase
